@@ -1,458 +1,539 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8">
-    <title>Dashboard de Desempeño de Choferes</title>
-    <script src="https://code.highcharts.com/highcharts.js"></script>
-    <style>
-      /*Estilos básicos de la página*/
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-      }
-      
-      /* =================================
-         Estilos para el sidebar lateral
-         ================================= */
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard de Desempeño de Choferes</title>
+  <!-- Fuente personalizada -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <style>
+    /* Variables de color y fuentes */
+    :root {
+      --primary-color: #002060;
+      --secondary-color: #34d399;
+      --accent-color: #ff5722;
+      --background-color: #f4f4f9;
+      --card-bg: #ffffff;
+      --sidebar-bg: #001440;
+      --text-color: #333;
+      --font-family: 'Montserrat', sans-serif;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: var(--font-family);
+      background-color: var(--background-color);
+      color: var(--text-color);
+      line-height: 1.6;
+    }
+    
+    /* Sidebar: Centrado verticalmente y textos alineados a la izquierda */
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 240px;
+      height: 100%;
+      background: var(--sidebar-bg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;  /* Centra verticalmente */
+      align-items: flex-start;    /* Alinea los textos a la izquierda */
+      border-right: 1px solid #ccc;
+      overflow-y: auto;
+      transition: transform 0.3s ease-in-out;
+      z-index: 1000;
+    }
+    
+    #sidebar.hidden {
+      transform: translateX(-100%);
+    }
+    
+    #sidebar h2 {
+      width: 100%;
+      text-align: left;
+      color: #fff;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+    }
+    
+    #sidebar ul {
+      list-style: none;
+      padding: 0;
+      width: 100%;
+    }
+    
+    #sidebar ul li {
+      margin-bottom: 20px;
+    }
+    
+    #sidebar ul li a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 1.1em;
+      display: block;
+      text-align: left;
+      transition: color 0.3s;
+    }
+    
+    #sidebar ul li a:hover {
+      color: var(--secondary-color);
+    }
+    
+    /* Toggle button para el sidebar */
+    .toggle-btn {
+      position: fixed;
+      top: 20px;
+      left: 260px;
+      font-size: 1.5em;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 4px;
+      z-index: 1100;
+      display: none;
+    }
+    
+    @media (max-width: 768px) {
       #sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 240px;
-        height: 100%;
-        background-color: #002060;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        border-right: 1px solid #ccc;
-        overflow-y: auto;
-        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease-in-out;
-        z-index: 1100;
+        width: 200px;
       }
-      
-      /* Estado oculto del sidebar */
-      #sidebar.hidden {
-        transform: translateX(-100%);
-      }
-      
-      /* Título dentro del sidebar */
-      #sidebar h2 {
-        text-align: center;
-        color: #fff;
-        margin-bottom: 20px;
-      }
-      
-      /* Listado de enlaces en el sidebar */
-      #sidebar ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        text-align: center;
-        width: 100%;
-      }
-      
-      /* Cada elemento del listado */
-      #sidebar ul li {
-        margin-bottom: 15px;
-      }
-      
-      /* Estilo de los enlaces del sidebar */
-      #sidebar ul li a {
-        text-decoration: none;
-        color: #fff;
-        font-weight: bold;
+      .toggle-btn {
         display: block;
-        padding: 12px 0;
+        left: 220px;
       }
-      
-      /* Hover sobre los enlaces del sidebar */
-      #sidebar ul li a:hover {
-        color: #cccccc;
-        text-decoration: none;
+      .main-content {
+        margin-left: 200px;
       }
-      
-      /* ====================================
-         Botón para mostrar/ocultar el sidebar
-         ==================================== */
-      #toggleSidebar {
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        background-color: #002060;
-        color: white;
-        border: none;
-        padding: 10px;
-        cursor: pointer;
-        font-size: 18px;
-        z-index: 1200;
-      }
-      
-      /* =================================
-         Estilos para el contenido principal
-         ================================= */
-      #main-content {
-        margin-left: 260px;
-        padding: 20px;
-        transition: margin-left 0.3s ease-in-out;
-      }
-      
-      /* Ajuste del contenido si el sidebar está oculto */
-      .sidebar-hidden #main-content {
-        margin-left: 20px;
-      }
-      
-      /* =============================
-         Encabezados y títulos
-         ============================= */
-      h1, h2, th {
-        text-align: center;
-      }
-      
-      /* ================================
-         Contenedor para el filtro central
-         ================================ */
-      .filter-container {
-        text-align: center;
-        margin-bottom: 20px;
-      }
-      
-      .filter-container label,
-      .filter-container select {
-        margin: 0 5px;
-        font-size: 16px;
-      }
-      
-      /* ================================
-         Contenedor para las tarjetas informativas
-         ================================ */
-      .container {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-      }
-      
-      /* ================================
-         Estilos para las tarjetas de datos
-         ================================ */
-      .card {
-        background-color: #f0f0f0;
-        padding: 20px;
-        border-radius: 10px;
-        width: 250px;
-        text-align: center;
-        font-size: 18px;
-        font-weight: bold;
-      }
-      
-      /* ================================
-         Estilos generales de tabla
-         ================================ */
-      table {
-        width: 80%;
-        margin: 20px auto;
-        border-collapse: collapse;
-      }
-      
-      th, td {
-        border: 1px solid #ccc;
-        padding: 8px;
-      }
-      
-      th {
-        background-color: #002060;
-        color: white;
-      }
-      
-      /* ================================
-         Estilos para el gráfico de earnings
-         ================================ */
-      #graficoEarnings {
-        max-width: 800px;
-        margin: 20px auto;
-      }
-      
-      /* =====================================
-         Estilos para la nueva tabla de choferes
-         ===================================== */
-      .container-table {
-        background-color: white;
-text-align: center;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      }
-      
-      /* Resalta las filas de choferes por debajo de la meta */
-      .bajo-meta {
-        background-color: #fee2e2;
-      }
-      
-      /* ================================
-         Estilos para el indicador de estado
-         ================================ */
-      .status {
-        padding: 4px 8px;
-        border-radius: 5px;
-        font-weight: bold;
-        display: inline-block;
-      }
-      
-      .status.bajo {
-        background-color: #f87171;
-        color: #fff;
-      }
-      
-      .status.cumple {
-        background-color: #34d399;
-        color: #fff;
-      }
-    </style>
-  </head>
-  <body>
-    <!-- Botón para mostrar/ocultar el sidebar -->
-    <button id="toggleSidebar">☰ MENU</button>
+    }
     
-    <!-- Sidebar de navegación -->
-    <div id="sidebar">
-      <h2>SEGUIMIENTO RV</h2>
-      <ul>
-        <li><a href="#">STATUS DE RV</a></li>
-        <li><a href="https://fadelt1.github.io/seguimientoporchofer/">TRAMOS POR CHOFER</a></li>
-        <li><a href="#">CHOFERES SIN VIAJES A INTERIOR</a></li>
-      </ul>
-    </div>
+    /* Main content */
+    .main-content {
+      margin-left: 240px;
+      padding: 20px;
+      transition: margin-left 0.3s ease-in-out;
+    }
     
-    <!-- Contenido principal del dashboard -->
-    <div id="main-content">
+    header {
+      padding: 20px 0;
+      border-bottom: 2px solid #ccc;
+    }
+    
+    header h1 {
+      font-size: 2em;
+      text-align: center;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+    }
+    
+    /* Tarjetas (cards) */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    
+    .card {
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .card h3 {
+      margin-bottom: 10px;
+      color: var(--primary-color);
+    }
+    
+    /* Gráfico combinado: RV Total (columnas) y Viático Acumulado (línea) */
+    #graficoEarnings {
+      max-width: 800px;
+      margin: 20px auto;
+    }
+    
+    /* Toolbar de Filtros */
+    .filter-container {
+      display: flex;
+      align-items: center;
+      justify-content: center; /* Centra los controles en el contenedor */
+      gap: 10px;
+      width: 80%;
+      margin: 50px auto 20px auto; /* Se aumenta el margin-top para bajarlo */
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: var(--card-bg);
+    }
+    
+    .filter-container label {
+      font-size: 1em;
+    }
+    
+    .filter-container input,
+    .filter-container select {
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+    }
+    
+    /* Botón para ocultar/mostrar la toolbar de filtros */
+    #toggleToolbar {
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    
+    /* Tabla */
+    .table-container {
+      margin-top: 40px;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 80%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: var(--card-bg);
+      table-layout: fixed;
+    }
+    
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      text-align: center;  /* Centrar el contenido de cada celda */
+      word-wrap: break-word;
+    }
+    
+    th {
+      background: var(--primary-color);
+      color: #fff;
+    }
+    
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    
+    tr:hover {
+      background: #f1f1f1;
+    }
+    
+    .bajo-meta {
+      background-color: #fee2e2;
+    }
+    
+    .status {
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-weight: bold;
+      display: inline-block;
+    }
+    
+    .status.bajo {
+      background-color: #f87171;
+      color: #fff;
+    }
+    
+    .status.cumple {
+      background-color: var(--secondary-color);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <h2>SEGUIMIENTO RV</h2>
+    <ul>
+      <li><a href="#">STATUS DE RV</a></li>
+      <li><a href="https://fadelt1.github.io/seguimientoporchofer/">TRAMOS POR CHOFER</a></li>
+      <li><a href="#">CHOFERES SIN VIAJES A INTERIOR</a></li>
+    </ul>
+  </div>
+  
+  <!-- Toggle button para el sidebar -->
+  <button class="toggle-btn" id="toggleBtn">☰</button>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <header>
       <h1>Dashboard de Desempeño de Choferes</h1>
-      
-      <!-- Tarjetas informativas -->
-      <div class="container">
-        <div class="card" id="totalBalance">Total de RV: ₲ 0</div>
-        <div class="card" id="totalSavings">Total choferes fuera de la meta: 0</div>
-        <div class="card" id="savingsTipo2">Tipo 2 fuera de la meta: 0</div>
-        <div class="card" id="savingsTipo3">Tipo 3 fuera de la meta: 0</div>
+    </header>
+    
+    <!-- Tarjetas -->
+    <div class="cards">
+      <div class="card" id="totalBalance">
+        <h3>Total de RV</h3>
+        <p>₲ 0</p>
       </div>
-      
-      <!-- Sección del gráfico -->
-      <div id="graficoEarnings"></div>
-      
-      <!-- Filtro para seleccionar tipo de chofer -->
-      <div class="filter-container">
-        <label for="filtroTipo">Filtrar por Tipo:</label>
-        <select id="filtroTipo" onchange="filtrarPorTipo()">
-          <option value="todos">Todos</option>
-          <option value="2">Tipo 2</option>
-          <option value="3">Tipo 3</option>
-        </select>
+      <div class="card" id="totalSavings">
+        <h3>Total fuera de la meta</h3>
+        <p>0</p>
       </div>
-      
-      <!-- Tabla actualizada con diseño mejorado -->
-      <div class="container-table">
-        <h2>Resumen RV por Chofer (Acumulado Total)</h2>
-        <table id="tablaTransactions">
-          <thead>
-            <tr>
-              <th>Chofer</th>
-              <th>RV Acumulado</th>
-              <th>Tipo</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- Las filas se generarán de forma dinámica -->
-          </tbody>
-        </table>
+      <div class="card" id="savingsTipo2">
+        <h3>Tipo 2 fuera de meta</h3>
+        <p>0</p>
       </div>
-      
-      <!-- ==========================================
-           Sección de JavaScript para funcionalidad
-           ========================================== -->
-      <script>
-        // -----------------------------------------------------
-        // Función para alternar la visibilidad del sidebar.
-        // Al hacer clic en el botón, se agrega o remueve la clase "hidden".
-        // -----------------------------------------------------
-        document.getElementById("toggleSidebar").addEventListener("click", function() {
-          document.getElementById("sidebar").classList.toggle("hidden");
-          document.body.classList.toggle("sidebar-hidden");
-        });
-        
-        // -----------------------------------------------------
-        // Variables globales para almacenar los datos obtenidos.
-        // "viajes" contendrá los registros descargados de Firebase.
-        // "rvPorChoferGlobal" es un objeto que agrupa la información por chofer.
-        // -----------------------------------------------------
-        let viajes = [];
-        let rvPorChoferGlobal = {};
-        
-        // -----------------------------------------------------
-        // Función: obtenerDatosDesdeFirebase
-        // Descripción: Realiza una petición a Firebase para obtener
-        //              datos en formato JSON y los almacena en la variable "viajes".
-        // -----------------------------------------------------
-        async function obtenerDatosDesdeFirebase() {
-          const url = "https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json";
-          try {
-            const respuesta = await fetch(url);
-            if (!respuesta.ok) {
-              throw new Error("Error al cargar datos");
-            }
-            const datos = await respuesta.json();
-            viajes = Object.values(datos);
-          } catch (error) {
-            console.error("Error al obtener los datos:", error);
-          }
-        }
-        
-        // -----------------------------------------------------
-        // Función: generarDashboard
-        // Descripción:
-        //  1. Llama a obtenerDatosDesdeFirebase para obtener la información.
-        //  2. Agrupa los datos por chofer y acumula el "RV GENERAL".
-        //  3. Calcula contadores para las tarjetas estadísticas.
-        //  4. Actualiza el contenido de las tarjetas.
-        //  5. Llama a la función mostrarTablaChoferes con el filtro actual.
-        //  6. Genera el gráfico de total de RV por día.
-        // -----------------------------------------------------
-        async function generarDashboard() {
-          await obtenerDatosDesdeFirebase();
-          
-          // Agrupar datos por chofer (clave: MOTORISTA 1)
-          rvPorChoferGlobal = viajes.reduce((acc, viaje) => {
-            const chofer = viaje["MOTORISTA 1"];
-            const tipo = viaje["TIPO"];
-            const rvGeneral = parseFloat(viaje["RV GENERAL"]) || 0;
-            if (!acc[chofer]) {
-              acc[chofer] = { rvTotal: 0, tipo: tipo };
-            }
-            acc[chofer].rvTotal += rvGeneral;
-            return acc;
-          }, {});
-          
-          // Inicializar contadores para los totales
-          let totalRV = 0;
-          let choferesFueraMeta = new Set();
-          let choferesFueraMetaTipo2 = new Set();
-          let choferesFueraMetaTipo3 = new Set();
-          
-          // Recorrer cada chofer para calcular totales y determinar estado
-          Object.entries(rvPorChoferGlobal).forEach(([chofer, data]) => {
-            const { rvTotal, tipo } = data;
-            totalRV += rvTotal;
-            if (rvTotal < 585000) {
-              choferesFueraMeta.add(chofer);
-              if (tipo == 2) {
-                choferesFueraMetaTipo2.add(chofer);
-              }
-              if (tipo == 3) {
-                choferesFueraMetaTipo3.add(chofer);
-              }
-            }
-          });
-          
-          // Actualizar el contenido de las tarjetas informativas
-          document.getElementById("totalBalance").textContent =
-            `Total de RV: ₲ ${totalRV.toLocaleString("es-PY")}`;
-          document.getElementById("totalSavings").textContent =
-            `Total choferes fuera de la meta: ${choferesFueraMeta.size}`;
-          document.getElementById("savingsTipo2").textContent =
-            `Tipo 2 fuera de la meta: ${choferesFueraMetaTipo2.size}`;
-          document.getElementById("savingsTipo3").textContent =
-            `Tipo 3 fuera de la meta: ${choferesFueraMetaTipo3.size}`;
-          
-          // Mostrar la tabla con los datos usando el filtro seleccionado (por defecto "todos")
-          mostrarTablaChoferes(rvPorChoferGlobal, document.getElementById("filtroTipo").value);
-          
-          // Generar el gráfico: Acumulado de RV por día
-          const rvPorDia = viajes.reduce((acc, viaje) => {
-            const fecha = viaje["DATA DA VIAGEM"];
-            const rvGeneral = parseFloat(viaje["RV GENERAL"]) || 0;
-            acc[fecha] = (acc[fecha] || 0) + rvGeneral;
-            return acc;
-          }, {});
-          
-          // Configuración y creación del gráfico usando Highcharts
-          Highcharts.chart("graficoEarnings", {
-            chart: { type: "column" },
-            title: { text: "Total de RV por Día" },
-            xAxis: {
-              categories: Object.keys(rvPorDia),
-              title: { text: "Fecha" }
-            },
-            yAxis: { title: { text: "Monto en ₲" } },
-            series: [{ name: "RV General", data: Object.values(rvPorDia) }]
-          });
-        }
-        
-        // -----------------------------------------------------
-        // Función: mostrarTablaChoferes
-        // Descripción:
-        //  1. Convierte el objeto de choferes a un array.
-        //  2. Ordena el array en forma ascendente por el RV acumulado.
-        //  3. Reinicializa la tabla con encabezados.
-        //  4. Recorre cada chofer y, si cumple con el filtro, inserta una fila.
-        //  5. Si el acumulado es menor a 585000, se aplica la clase "bajo-meta".
-        //  6. Se añade un indicador de estado ("Bajo meta" o "Cumple").
-        // -----------------------------------------------------
-        function mostrarTablaChoferes(rvPorChofer, filtroTipo = "todos") {
-          const listaChoferes = Object.entries(rvPorChofer)
-            .map(([chofer, data]) => ({ chofer, ...data }))
-            .sort((a, b) => a.rvTotal - b.rvTotal);
-          
-          const tabla = document.getElementById("tablaTransactions");
-          tabla.innerHTML = `
-            <thead>
-              <tr>
-                <th>Chofer</th>
-                <th>RV Acumulado</th>
-                <th>Tipo</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          `;
-          const tbody = tabla.querySelector("tbody");
-          
-          listaChoferes.forEach(({ chofer, rvTotal, tipo }) => {
-            if (filtroTipo === "todos" || filtroTipo === tipo.toString()) {
-              let fila = document.createElement("tr");
-              if (rvTotal < 585000) {
-                fila.classList.add("bajo-meta");
-              }
-              fila.innerHTML = `
-                <td>${chofer}</td>
-                <td>₲ ${rvTotal.toLocaleString("es-PY")}</td>
-                <td>${tipo}</td>
-                <td><span class="status ${rvTotal < 585000 ? "bajo" : "cumple"}">
-                  ${rvTotal < 585000 ? "Bajo meta" : "Cumple"}
-                </span></td>
-              `;
-              tbody.appendChild(fila);
-            }
-          });
-        }
-        
-        // -----------------------------------------------------
-        // Función: filtrarPorTipo
-        // Descripción: Al cambiar el filtro en el select, se actualiza la tabla.
-        // -----------------------------------------------------
-        function filtrarPorTipo() {
-          const filtroTipo = document.getElementById("filtroTipo").value;
-          mostrarTablaChoferes(rvPorChoferGlobal, filtroTipo);
-        }
-        
-        // -----------------------------------------------------
-        // Inicialización del dashboard
-        // Llama a la función principal para obtener y mostrar los datos.
-        // -----------------------------------------------------
-        generarDashboard();
-      </script>
+      <div class="card" id="savingsTipo3">
+        <h3>Tipo 3 fuera de meta</h3>
+        <p>0</p>
+      </div>
     </div>
-  </body>
+    
+    <!-- Gráfico combinado (agrupado por fecha) -->
+    <div id="graficoEarnings"></div>
+    
+    <!-- Toolbar de Filtros -->
+    <div class="filter-container" id="filterToolbar">
+      <button id="toggleToolbar">Ocultar Filtros</button>
+      <label for="searchInput">Buscar por Nombre:</label>
+      <input type="text" id="searchInput" placeholder="Ingrese nombre..." onkeyup="filtrarChoferes()" />
+      <label for="filterSelect">Filtrar por Tipo:</label>
+      <select id="filterSelect" onchange="filtrarChoferes()">
+        <option value="todos">Todos</option>
+        <option value="2">Tipo 2</option>
+        <option value="3">Tipo 3</option>
+      </select>
+    </div>
+    
+    <!-- Tabla -->
+    <div class="table-container">
+      <table id="tablaTransactions">
+        <thead>
+          <tr>
+            <th>Chofer</th>
+            <th>RV Total</th>
+            <th>Viático Acumulado</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Se insertarán las filas dinámicamente -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  
+  <script>
+    // Toggle sidebar para dispositivos móviles.
+    const toggleBtn = document.getElementById("toggleBtn");
+    const sidebar = document.getElementById("sidebar");
+    toggleBtn.addEventListener("click", () => {
+      sidebar.classList.toggle("hidden");
+    });
+    
+    // Toggle para el toolbar de filtros.
+    const toggleToolbarBtn = document.getElementById("toggleToolbar");
+    const filterToolbar = document.getElementById("filterToolbar");
+    toggleToolbarBtn.addEventListener("click", () => {
+      const controls = Array.from(filterToolbar.children).filter(el => el !== toggleToolbarBtn);
+      let areControlsVisible = controls.every(el => el.style.display !== "none" && el.style.display !== "");
+      controls.forEach(el => {
+        el.style.display = areControlsVisible ? "none" : "inline-block";
+      });
+      toggleToolbarBtn.textContent = areControlsVisible ? "Mostrar Filtros" : "Ocultar Filtros";
+    });
+    
+    // Variables globales.
+    let viajes = [];
+    let rvPorChoferGlobal = {};
+    
+    async function obtenerDatosDesdeFirebase() {
+      const url = "https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json";
+      try {
+        const respuesta = await fetch(url);
+        if (!respuesta.ok) throw new Error("Error al cargar datos");
+        const datos = await respuesta.json();
+        viajes = Object.values(datos);
+      } catch (error) {
+        console.error("Error al obtener los datos:", error);
+      }
+    }
+    
+    async function generarDashboard() {
+      await obtenerDatosDesdeFirebase();
+      
+      // Agrupar datos por chofer (para tarjetas y tabla)
+      rvPorChoferGlobal = viajes.reduce((acc, viaje) => {
+        const chofer = viaje["MOTORISTA 1"];
+        const tipo = viaje["TIPO"];
+        const rvGeneral = parseFloat(viaje["RV GENERAL"]) || 0;
+        const viatico = parseFloat(viaje["VIATICO"]) || 0;
+        if (!acc[chofer]) {
+          acc[chofer] = { rvTotal: 0, viaticoTotal: 0, tipo: tipo };
+        }
+        acc[chofer].rvTotal += rvGeneral;
+        acc[chofer].viaticoTotal += viatico;
+        return acc;
+      }, {});
+      
+      // Calcular contadores para las tarjetas.
+      let totalRV = 0;
+      let choferesFueraMeta = new Set();
+      let choferesFueraMetaTipo2 = new Set();
+      let choferesFueraMetaTipo3 = new Set();
+      
+      Object.entries(rvPorChoferGlobal).forEach(([chofer, data]) => {
+        const { rvTotal, tipo } = data;
+        totalRV += rvTotal;
+        if (rvTotal < 585000) {
+          choferesFueraMeta.add(chofer);
+          if (tipo == 2) choferesFueraMetaTipo2.add(chofer);
+          if (tipo == 3) choferesFueraMetaTipo3.add(chofer);
+        }
+      });
+      
+      // Actualizar tarjetas.
+      document.getElementById("totalBalance").querySelector("p").textContent =
+        `₲ ${totalRV.toLocaleString("es-PY")}`;
+      document.getElementById("totalSavings").querySelector("p").textContent =
+        choferesFueraMeta.size;
+      document.getElementById("savingsTipo2").querySelector("p").textContent =
+        choferesFueraMetaTipo2.size;
+      document.getElementById("savingsTipo3").querySelector("p").textContent =
+        choferesFueraMetaTipo3.size;
+      
+      filtrarChoferes(); // Actualiza la tabla según filtros.
+      
+      // Generar gráfico combinado agrupado por "DATA DA VIAGEM".
+      const rvPorDia = viajes.reduce((acc, viaje) => {
+        const fecha = viaje["DATA DA VIAGEM"];
+        const rvGeneral = parseFloat(viaje["RV GENERAL"]) || 0;
+        acc[fecha] = (acc[fecha] || 0) + rvGeneral;
+        return acc;
+      }, {});
+      
+      const viaticoPorDia = viajes.reduce((acc, viaje) => {
+        const fecha = viaje["DATA DA VIAGEM"];
+        const viatico = parseFloat(viaje["VIATICO"]) || 0;
+        acc[fecha] = (acc[fecha] || 0) + viatico;
+        return acc;
+      }, {});
+      
+      // Ordenar las fechas (se supone un formato similar a YYYY-MM-DD)
+      const fechasOrdenadas = Object.keys(rvPorDia).sort();
+      const rvData = fechasOrdenadas.map(fecha => rvPorDia[fecha]);
+      const viaticoData = fechasOrdenadas.map(fecha => viaticoPorDia[fecha] || 0);
+      
+      // Configuramos el gráfico combinado con formato en guaraníes.
+      Highcharts.setOptions({ time: { useUTC: false } });
+      Highcharts.chart("graficoEarnings", {
+        chart: { zoomType: "xy" },
+        title: { text: "Comparación de RV Total vs Viático Acumulado" },
+        xAxis: {
+          categories: fechasOrdenadas,
+          crosshair: true
+        },
+        yAxis: [{
+          title: { text: "RV Total (₲)" },
+          labels: {
+            formatter: function() {
+              return '₲ ' + Highcharts.numberFormat(this.value, 0, ',', '.');
+            }
+          }
+        }, {
+          title: { text: "Viático Acumulado (₲)" },
+          opposite: true,
+          labels: {
+            formatter: function() {
+              return '₲ ' + Highcharts.numberFormat(this.value, 0, ',', '.');
+            }
+          }
+        }],
+        tooltip: {
+          shared: true,
+          formatter: function() {
+            let s = '<b>' + this.x + '</b>';
+            this.points.forEach(point => {
+              s += '<br/>' + point.series.name +
+                   ': <b>₲ ' + Highcharts.numberFormat(point.y, 0, ',', '.') + '</b>';
+            });
+            return s;
+          }
+        },
+        legend: {
+          layout: "vertical",
+          align: "left",
+          x: 80,
+          verticalAlign: "top",
+          y: 55,
+          floating: true
+        },
+        series: [
+          { name: "RV Total", type: "column", data: rvData },
+          { name: "Viático Acumulado", type: "spline", yAxis: 1, data: viaticoData }
+        ]
+      });
+    }
+    
+    // Función para mostrar la tabla combinando filtros (por tipo y búsqueda de nombre).
+    function mostrarTablaChoferes(rvPorChofer, filtroTipo = "todos", busqueda = "") {
+      const listaChoferes = Object.entries(rvPorChofer)
+        .map(([chofer, data]) => ({ chofer, ...data }))
+        .sort((a, b) => a.rvTotal - b.rvTotal);
+      
+      const tabla = document.getElementById("tablaTransactions");
+      tabla.innerHTML = `<thead>
+        <tr>
+          <th>Chofer</th>
+          <th>RV Total</th>
+          <th>Viático Acumulado</th>
+          <th>Tipo</th>
+          <th>Estado</th>
+        </tr>
+      </thead><tbody></tbody>`;
+      const tbody = tabla.querySelector("tbody");
+      
+      listaChoferes.forEach(({ chofer, rvTotal, viaticoTotal, tipo }) => {
+        if (
+          (filtroTipo === "todos" || filtroTipo === tipo.toString()) &&
+          (busqueda === "" || chofer.toLowerCase().includes(busqueda.toLowerCase()))
+        ) {
+          let fila = document.createElement("tr");
+          if (rvTotal < 585000) {
+            fila.classList.add("bajo-meta");
+          }
+          fila.innerHTML = `<td>${chofer}</td>
+                            <td>₲ ${rvTotal.toLocaleString("es-PY")}</td>
+                            <td>₲ ${viaticoTotal.toLocaleString("es-PY")}</td>
+                            <td>${tipo}</td>
+                            <td><span class="status ${rvTotal < 585000 ? "bajo" : "cumple"}">
+                              ${rvTotal < 585000 ? "Bajo meta" : "Cumple"}
+                            </span></td>`;
+          tbody.appendChild(fila);
+        }
+      });
+    }
+    
+    // Función que combina ambos filtros: por tipo y búsqueda por nombre
+    function filtrarChoferes() {
+      const filtroTipo = document.getElementById("filterSelect").value || "todos";
+      const busqueda = document.getElementById("searchInput").value || "";
+      mostrarTablaChoferes(rvPorChoferGlobal, filtroTipo, busqueda);
+    }
+    
+    generarDashboard();
+  </script>
+</body>
 </html>
