@@ -2,538 +2,291 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard de Desempeño de Choferes</title>
-  <!-- Fuente personalizada -->
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard de Choferes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://code.highcharts.com/highcharts.js"></script>
   <style>
-    /* Variables de color y fuentes */
-    :root {
-      --primary-color: #002060;
-      --secondary-color: #34d399;
-      --accent-color: #ff5722;
-      --background-color: #f4f4f9;
-      --card-bg: #ffffff;
-      --sidebar-bg: #001440;
-      --text-color: #333;
-      --font-family: 'Montserrat', sans-serif;
+    :root{
+      --primary:#002060;
+      --secondary:#34d399;
+      --danger:#e11d48;
+      --warning:#f59e0b;
+      --bg:#f4f6f9;
+      --card:#ffffff;
+      --text:#333;
+      --sidebar:#001440;
     }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--text)}
+    header{
+      position:sticky;
+      top:0;
+      z-index:30;
+      background:var(--card);
+      border-bottom:1px solid #e5e7eb;
+      padding:14px 18px;
+      text-align:center;   /* ✅ centra el título */
     }
-    
-    body {
-      font-family: var(--font-family);
-      background-color: var(--background-color);
-      color: var(--text-color);
-      line-height: 1.6;
+    .brand{
+      font-weight:700;
+      color:var(--primary);
+      font-size:20px;
+      letter-spacing:.3px;
+      display:inline-block;
     }
-    
-    /* Sidebar: Centrado verticalmente y textos alineados a la izquierda */
-    #sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 240px;
-      height: 100%;
-      background: var(--sidebar-bg);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;  /* Centra verticalmente */
-      align-items: flex-start;    /* Alinea los textos a la izquierda */
-      border-right: 1px solid #ccc;
-      overflow-y: auto;
-      transition: transform 0.3s ease-in-out;
-      z-index: 1000;
+    .wrap{display:grid;grid-template-columns:260px 1fr;min-height:100dvh}
+    aside{
+      background:var(--sidebar);color:#fff;padding:18px;position:sticky;top:0;align-self:start;height:100dvh
     }
-    
-    #sidebar.hidden {
-      transform: translateX(-100%);
+    .side-title{font-size:14px;letter-spacing:.6px;opacity:.9;margin:8px 0 14px}
+    .nav a{display:block;color:#fff;text-decoration:none;padding:10px 8px;border-radius:8px;opacity:.95}
+    .nav a:hover{background:rgba(255,255,255,.08)}
+    main{padding:18px}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:14px 0 18px}
+    .card{
+      background:var(--card);border-radius:14px;padding:16px;box-shadow:0 6px 16px rgba(0,0,0,.06);
+      border-top:5px solid transparent;display:flex;flex-direction:column;gap:8px;min-height:106px
     }
-    
-    #sidebar h2 {
-      width: 100%;
-      text-align: left;
-      color: #fff;
-      margin-bottom: 20px;
-      letter-spacing: 1px;
+    .card .k{font-size:13px;color:#6b7280}
+    .card .v{font-size:26px;font-weight:700;color:var(--primary)}
+    .c1{border-top-color:var(--primary)}
+    .c2{border-top-color:var(--danger)}
+    .c3{border-top-color:var(--warning)}
+    .c4{border-top-color:var(--secondary)}
+    .toolbar{
+      background:var(--card);border:1px solid #e5e7eb;border-radius:12px;padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center
     }
-    
-    #sidebar ul {
-      list-style: none;
-      padding: 0;
-      width: 100%;
+    .toolbar input,.toolbar select{
+      padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;background:#fff;font-size:14px;min-width:160px
     }
-    
-    #sidebar ul li {
-      margin-bottom: 20px;
-    }
-    
-    #sidebar ul li a {
-      color: #fff;
-      text-decoration: none;
-      font-size: 1.1em;
-      display: block;
-      text-align: left;
-      transition: color 0.3s;
-    }
-    
-    #sidebar ul li a:hover {
-      color: var(--secondary-color);
-    }
-    
-    /* Toggle button para el sidebar */
-    .toggle-btn {
-      position: fixed;
-      top: 20px;
-      left: 260px;
-      font-size: 1.5em;
-      background: var(--primary-color);
-      color: #fff;
-      border: none;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 4px;
-      z-index: 1100;
-      display: none;
-    }
-    
-    @media (max-width: 768px) {
-      #sidebar {
-        width: 200px;
-      }
-      .toggle-btn {
-        display: block;
-        left: 220px;
-      }
-      .main-content {
-        margin-left: 200px;
-      }
-    }
-    
-    /* Main content */
-    .main-content {
-      margin-left: 240px;
-      padding: 20px;
-      transition: margin-left 0.3s ease-in-out;
-    }
-    
-    header {
-      padding: 20px 0;
-      border-bottom: 2px solid #ccc;
-    }
-    
-    header h1 {
-      font-size: 2em;
-      text-align: center;
-      color: var(--primary-color);
-      margin-bottom: 20px;
-    }
-    
-    /* Tarjetas (cards) */
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 20px;
-      margin-top: 30px;
-    }
-    
-    .card {
-      background: var(--card-bg);
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      transition: transform 0.3s;
-    }
-    
-    .card:hover {
-      transform: translateY(-5px);
-    }
-    
-    .card h3 {
-      margin-bottom: 10px;
-      color: var(--primary-color);
-    }
-    
-    /* Gráfico combinado: RV Total (columnas) y Viático Acumulado (línea) */
-    #graficoEarnings {
-      max-width: 800px;
-      margin: 20px auto;
-    }
-    
-    /* Toolbar de Filtros */
-    .filter-container {
-      display: flex;
-      align-items: center;
-      justify-content: center; /* Centra los controles en el contenedor */
-      gap: 10px;
-      width: 80%;
-      margin: 50px auto 20px auto; /* Se aumenta el margin-top para bajarlo */
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: var(--card-bg);
-    }
-    
-    .filter-container label {
-      font-size: 1em;
-    }
-    
-    .filter-container input,
-    .filter-container select {
-      padding: 8px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1em;
-    }
-    
-    /* Botón para ocultar/mostrar la toolbar de filtros */
-    #toggleToolbar {
-      background: var(--primary-color);
-      color: #fff;
-      border: none;
-      padding: 6px 10px;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 0.9em;
-    }
-    
-    /* Tabla */
-    .table-container {
-      margin-top: 40px;
-      overflow-x: auto;
-    }
-    
-    table {
-      width: 80%;
-      margin: 20px auto;
-      border-collapse: collapse;
-      background: var(--card-bg);
-      table-layout: fixed;
-    }
-    
-    th, td {
-      padding: 12px 15px;
-      border: 1px solid #ddd;
-      text-align: center;  /* Centrar el contenido de cada celda */
-      word-wrap: break-word;
-    }
-    
-    th {
-      background: var(--primary-color);
-      color: #fff;
-    }
-    
-    tr:nth-child(even) {
-      background: #f9f9f9;
-    }
-    
-    tr:hover {
-      background: #f1f1f1;
-    }
-    
-    .bajo-meta {
-      background-color: #fee2e2;
-    }
-    
-    .status {
-      padding: 4px 8px;
-      border-radius: 5px;
-      font-weight: bold;
-      display: inline-block;
-    }
-    
-    .status.bajo {
-      background-color: #f87171;
-      color: #fff;
-    }
-    
-    .status.cumple {
-      background-color: var(--secondary-color);
-      color: #fff;
-    }
+    .btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600}
+    .btn-primary{background:var(--primary);color:#fff}
+    .table-wrap{margin-top:14px;background:var(--card);border-radius:12px;border:1px solid #e5e7eb;overflow:auto}
+    table{width:100%;border-collapse:collapse;font-size:14px;min-width:700px}
+    th,td{padding:12px 10px;text-align:center;border-bottom:1px solid #f3f4f6}
+    th{background:#0b1d57;color:#fff;cursor:pointer;user-select:none;position:sticky;top:0;z-index:1}
+    tr:hover td{background:#fafafa}
+    .estado{display:inline-flex;align-items:center;gap:6px;font-weight:700;padding:4px 10px;border-radius:999px}
+    .ok{background:#e6f9f1;color:#065f46}
+    .prox{background:#fff7ed;color:#9a3412}
+    .bad{background:#fee2e2;color:#991b1b}
+    .row-bad{background:#fff5f5}
+    #grafico{background:var(--card);border:1px solid #e5e7eb;border-radius:12px;margin:16px 0;padding:8px}
+    @media(max-width:980px){.wrap{grid-template-columns:1fr}aside{display:none}}
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <h2>SEGUIMIENTO RV</h2>
-    <ul>
-      <li><a href="#">STATUS DE RV</a></li>
-      <li><a href="https://fadelt1.github.io/seguimientoporchofer/">TRAMOS POR CHOFER</a></li>
-      <li><a href="https://fadelt1.github.io/historicorv/">Historico RV</a></li>
-    </ul>
+  <header>
+    <span class="brand">🚛 Dashboard de Desempeño de Choferes</span>
+  </header>
+
+  <div class="wrap">
+    <aside>
+      <div class="side-title">SEGUIMIENTO RV</div>
+      <nav class="nav">
+        <a href="#">Status de RV</a>
+        <a href="https://fadelt1.github.io/seguimientoporchofer/" target="_blank" rel="noopener">Tramos por Chofer</a>
+        <a href="https://fadelt1.github.io/historicorv/" target="_blank" rel="noopener">Histórico RV</a>
+      </nav>
+    </aside>
+
+    <main>
+      <!-- Cards -->
+      <section class="cards">
+        <div class="card c1"><div class="k">Total de RV</div><div class="v" id="k_totalRV">₲ 0</div></div>
+        <div class="card c2"><div class="k">Total fuera de la meta</div><div class="v" id="k_fuera">0</div></div>
+        <div class="card c3"><div class="k">Tipo 2 fuera de meta</div><div class="v" id="k_t2">0</div></div>
+        <div class="card c4"><div class="k">Tipo 3 fuera de meta</div><div class="v" id="k_t3">0</div></div>
+      </section>
+
+      <!-- Toolbar -->
+      <section class="toolbar">
+        <input id="search" type="text" placeholder="Buscar chofer..." />
+        <select id="f_tipo">
+          <option value="">Filtrar por Tipo</option>
+          <option value="2">Tipo 2</option>
+          <option value="3">Tipo 3</option>
+        </select>
+        <select id="f_estado">
+          <option value="">Filtrar por Estado</option>
+          <option value="ok">Cumple Meta</option>
+          <option value="prox">Próximo a llegar</option>
+          <option value="bad">Fuera de Meta</option>
+        </select>
+        <select id="f_interior">
+          <option value="">Filtrar Interior</option>
+          <option value="con">Con viajes</option>
+          <option value="sin">Sin viajes</option>
+        </select>
+        <button class="btn btn-primary" id="btn_csv">📤 Exportar CSV</button>
+      </section>
+
+      <!-- Gráfico -->
+      <div id="grafico"></div>
+
+      <!-- Tabla -->
+      <div class="table-wrap">
+        <table id="tabla">
+          <thead>
+            <tr>
+              <th data-col="chofer">Chofer</th>
+              <th data-col="tipo">Tipo</th>
+              <th data-col="rv">RV</th>
+              <th data-col="viatico">Viáticos</th>
+              <th data-col="estado">Estado</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </main>
   </div>
-  
-  <!-- Toggle button para el sidebar -->
-  <button class="toggle-btn" id="toggleBtn">☰</button>
-  
-  <!-- Main Content -->
-  <div class="main-content">
-    <header>
-      <h1>Dashboard de Desempeño de Choferes</h1>
-    </header>
-    
-    <!-- Tarjetas -->
-    <div class="cards">
-      <div class="card" id="totalBalance">
-        <h3>Total de RV</h3>
-        <p>₲ 0</p>
-      </div>
-      <div class="card" id="totalSavings">
-        <h3>Total fuera de la meta</h3>
-        <p>0</p>
-      </div>
-      <div class="card" id="savingsTipo2">
-        <h3>Tipo 2 fuera de meta</h3>
-        <p>0</p>
-      </div>
-      <div class="card" id="savingsTipo3">
-        <h3>Tipo 3 fuera de meta</h3>
-        <p>0</p>
-      </div>
-    </div>
-    
-    <!-- Gráfico combinado (agrupado por fecha) -->
-    <div id="graficoEarnings"></div>
-    
-    <!-- Toolbar de Filtros -->
-    <div class="filter-container" id="filterToolbar">
-      <button id="toggleToolbar">Ocultar Filtros</button>
-      <label for="searchInput">Buscar por Nombre:</label>
-      <input type="text" id="searchInput" placeholder="Ingrese nombre..." onkeyup="filtrarChoferes()" />
-      <label for="filterSelect">Filtrar por Tipo:</label>
-      <select id="filterSelect" onchange="filtrarChoferes()">
-        <option value="todos">Todos</option>
-        <option value="2">Tipo 2</option>
-        <option value="3">Tipo 3</option>
-      </select>
-    </div>
-    
-    <!-- Tabla -->
-    <div class="table-container">
-      <table id="tablaTransactions">
-        <thead>
-          <tr>
-            <th>Chofer</th>
-            <th>RV Total</th>
-            <th>Viático Acumulado</th>
-            <th>Tipo</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Se insertarán las filas dinámicamente -->
-        </tbody>
-      </table>
-    </div>
-  </div>
-  
-  <script>
-    // Toggle sidebar para dispositivos móviles.
-    const toggleBtn = document.getElementById("toggleBtn");
-    const sidebar = document.getElementById("sidebar");
-    toggleBtn.addEventListener("click", () => {
-      sidebar.classList.toggle("hidden");
-    });
-    
-    // Toggle para el toolbar de filtros.
-    const toggleToolbarBtn = document.getElementById("toggleToolbar");
-    const filterToolbar = document.getElementById("filterToolbar");
-    toggleToolbarBtn.addEventListener("click", () => {
-      const controls = Array.from(filterToolbar.children).filter(el => el !== toggleToolbarBtn);
-      let areControlsVisible = controls.every(el => el.style.display !== "none" && el.style.display !== "");
-      controls.forEach(el => {
-        el.style.display = areControlsVisible ? "none" : "inline-block";
-      });
-      toggleToolbarBtn.textContent = areControlsVisible ? "Mostrar Filtros" : "Ocultar Filtros";
-    });
-    
-    // Variables globales.
-    let viajes = [];
-    let rvPorChoferGlobal = {};
-    
-    async function obtenerDatosDesdeFirebase() {
-      const url = "https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json";
-      try {
-        const respuesta = await fetch(url);
-        if (!respuesta.ok) throw new Error("Error al cargar datos");
-        const datos = await respuesta.json();
-        viajes = Object.values(datos);
-      } catch (error) {
-        console.error("Error al obtener los datos:", error);
-      }
-    }
-    
-    async function generarDashboard() {
-      await obtenerDatosDesdeFirebase();
-      
-      // Agrupar datos por chofer (para tarjetas y tabla)
-      rvPorChoferGlobal = viajes.reduce((acc, viaje) => {
-        const chofer = viaje["MOTORISTA 1"];
-        const tipo = viaje["TIPO"];
-        const rvGeneral = parseFloat(viaje["RV GENERAL"]) || 0;
-        const viatico = parseFloat(viaje["VIATICO"]) || 0;
-        if (!acc[chofer]) {
-          acc[chofer] = { rvTotal: 0, viaticoTotal: 0, tipo: tipo };
-        }
-        acc[chofer].rvTotal += rvGeneral;
-        acc[chofer].viaticoTotal += viatico;
-        return acc;
-      }, {});
-      
-      // Calcular contadores para las tarjetas.
-      let totalRV = 0;
-      let choferesFueraMeta = new Set();
-      let choferesFueraMetaTipo2 = new Set();
-      let choferesFueraMetaTipo3 = new Set();
-      
-      Object.entries(rvPorChoferGlobal).forEach(([chofer, data]) => {
-        const { rvTotal, tipo } = data;
-        totalRV += rvTotal;
-        if (rvTotal < 585000) {
-          choferesFueraMeta.add(chofer);
-          if (tipo == 2) choferesFueraMetaTipo2.add(chofer);
-          if (tipo == 3) choferesFueraMetaTipo3.add(chofer);
-        }
-      });
-      
-      // Actualizar tarjetas.
-      document.getElementById("totalBalance").querySelector("p").textContent =
-        `₲ ${totalRV.toLocaleString("es-PY")}`;
-      document.getElementById("totalSavings").querySelector("p").textContent =
-        choferesFueraMeta.size;
-      document.getElementById("savingsTipo2").querySelector("p").textContent =
-        choferesFueraMetaTipo2.size;
-      document.getElementById("savingsTipo3").querySelector("p").textContent =
-        choferesFueraMetaTipo3.size;
-      
-      filtrarChoferes(); // Actualiza la tabla según filtros.
-      
-      // Generar gráfico combinado agrupado por "DATA DA VIAGEM".
-      const rvPorDia = viajes.reduce((acc, viaje) => {
-        const fecha = viaje["DATA DA VIAGEM"];
-        const rvGeneral = parseFloat(viaje["RV GENERAL"]) || 0;
-        acc[fecha] = (acc[fecha] || 0) + rvGeneral;
-        return acc;
-      }, {});
-      
-      const viaticoPorDia = viajes.reduce((acc, viaje) => {
-        const fecha = viaje["DATA DA VIAGEM"];
-        const viatico = parseFloat(viaje["VIATICO"]) || 0;
-        acc[fecha] = (acc[fecha] || 0) + viatico;
-        return acc;
-      }, {});
-      
-      // Ordenar las fechas (se supone un formato similar a YYYY-MM-DD)
-      const fechasOrdenadas = Object.keys(rvPorDia).sort();
-      const rvData = fechasOrdenadas.map(fecha => rvPorDia[fecha]);
-      const viaticoData = fechasOrdenadas.map(fecha => viaticoPorDia[fecha] || 0);
-      
-      // Configuramos el gráfico combinado con formato en guaraníes.
-      Highcharts.setOptions({ time: { useUTC: false } });
-      Highcharts.chart("graficoEarnings", {
-        chart: { zoomType: "xy" },
-        title: { text: "Comparación de RV Total vs Viático Acumulado" },
-        xAxis: {
-          categories: fechasOrdenadas,
-          crosshair: true
-        },
-        yAxis: [{
-          title: { text: "RV Total (₲)" },
-          labels: {
-            formatter: function() {
-              return '₲ ' + Highcharts.numberFormat(this.value, 0, ',', '.');
-            }
-          }
-        }, {
-          title: { text: "Viático Acumulado (₲)" },
-          opposite: true,
-          labels: {
-            formatter: function() {
-              return '₲ ' + Highcharts.numberFormat(this.value, 0, ',', '.');
-            }
-          }
-        }],
-        tooltip: {
-          shared: true,
-          formatter: function() {
-            let s = '<b>' + this.x + '</b>';
-            this.points.forEach(point => {
-              s += '<br/>' + point.series.name +
-                   ': <b>₲ ' + Highcharts.numberFormat(point.y, 0, ',', '.') + '</b>';
-            });
-            return s;
-          }
-        },
-        legend: {
-          layout: "vertical",
-          align: "left",
-          x: 80,
-          verticalAlign: "top",
-          y: 55,
-          floating: true
-        },
-        series: [
-          { name: "RV Total", type: "column", data: rvData },
-          { name: "Viático Acumulado", type: "spline", yAxis: 1, data: viaticoData }
-        ]
-      });
-    }
-    
-    // Función para mostrar la tabla combinando filtros (por tipo y búsqueda de nombre).
-    function mostrarTablaChoferes(rvPorChofer, filtroTipo = "todos", busqueda = "") {
-      const listaChoferes = Object.entries(rvPorChofer)
-        .map(([chofer, data]) => ({ chofer, ...data }))
-        .sort((a, b) => a.rvTotal - b.rvTotal);
-      
-      const tabla = document.getElementById("tablaTransactions");
-      tabla.innerHTML = `<thead>
-        <tr>
-          <th>Chofer</th>
-          <th>RV Total</th>
-          <th>Viático Acumulado</th>
-          <th>Tipo</th>
-          <th>Estado</th>
-        </tr>
-      </thead><tbody></tbody>`;
-      const tbody = tabla.querySelector("tbody");
-      
-      listaChoferes.forEach(({ chofer, rvTotal, viaticoTotal, tipo }) => {
-        if (
-          (filtroTipo === "todos" || filtroTipo === tipo.toString()) &&
-          (busqueda === "" || chofer.toLowerCase().includes(busqueda.toLowerCase()))
-        ) {
-          let fila = document.createElement("tr");
-          if (rvTotal < 585000) {
-            fila.classList.add("bajo-meta");
-          }
-          fila.innerHTML = `<td>${chofer}</td>
-                            <td>₲ ${rvTotal.toLocaleString("es-PY")}</td>
-                            <td>₲ ${viaticoTotal.toLocaleString("es-PY")}</td>
-                            <td>${tipo}</td>
-                            <td><span class="status ${rvTotal < 585000 ? "bajo" : "cumple"}">
-                              ${rvTotal < 585000 ? "Bajo meta" : "Cumple"}
-                            </span></td>`;
-          tbody.appendChild(fila);
-        }
-      });
-    }
-    
-    // Función que combina ambos filtros: por tipo y búsqueda por nombre
-    function filtrarChoferes() {
-      const filtroTipo = document.getElementById("filterSelect").value || "todos";
-      const busqueda = document.getElementById("searchInput").value || "";
-      mostrarTablaChoferes(rvPorChoferGlobal, filtroTipo, busqueda);
-    }
-    
-    generarDashboard();
-  </script>
+
+<script>
+const FIREBASE_URL = "https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json";
+const META_RV = 585000;
+let viajes = [];
+let rvPorChofer = {};
+let sortState = { col: 'rv', dir: 'desc' };
+
+const fmtGs = n => '₲ ' + (Number(n)||0).toLocaleString('es-PY');
+
+async function cargarDatos(){
+  try{
+    const res = await fetch(FIREBASE_URL);
+    if(!res.ok) throw new Error('Error HTTP: '+res.status);
+    const data = await res.json();
+    viajes = data ? Object.values(data) : [];
+  }catch(err){console.error(err);viajes=[];}
+}
+
+function agruparPorChofer(){
+  rvPorChofer = viajes.reduce((acc,v)=>{
+    const chofer=(v["MOTORISTA 1"]||"").trim();
+    if(!chofer)return acc;
+    const tipo=String(v["TIPO"]||"").trim();
+    const rv=parseFloat(v["RV GENERAL"])||0;
+    const viatico=parseFloat(v["VIATICO"])||0;
+    if(!acc[chofer]) acc[chofer]={rvTotal:0,viaticoTotal:0,tipo};
+    acc[chofer].rvTotal+=rv;
+    acc[chofer].viaticoTotal+=viatico;
+    if(tipo) acc[chofer].tipo=tipo;
+    return acc;
+  },{});
+}
+
+function kpis(){
+  let totalRV=0;const t2=new Set(),t3=new Set(),fuera=new Set();
+  for(const [ch,d] of Object.entries(rvPorChofer)){
+    totalRV+=d.rvTotal;
+    if(d.rvTotal<META_RV)fuera.add(ch);
+    if(String(d.tipo)==='2'&&d.rvTotal<META_RV)t2.add(ch);
+    if(String(d.tipo)==='3'&&d.rvTotal<META_RV)t3.add(ch);
+  }
+  document.getElementById('k_totalRV').textContent=fmtGs(totalRV);
+  document.getElementById('k_fuera').textContent=fuera.size;
+  document.getElementById('k_t2').textContent=t2.size;
+  document.getElementById('k_t3').textContent=t3.size;
+}
+
+function estadoClase(rv){
+  if(rv < 500000) return 'bad';          // fuera de meta
+  if(rv < META_RV) return 'prox';        // próximo a llegar
+  return 'ok';                           // cumple meta
+}
+function estadoTexto(c){
+  return c==='bad'?'Fuera de meta':(c==='prox'?'Próximo a llegar':'Cumple meta');
+}
+
+function rowsFiltradas(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const ft=document.getElementById('f_tipo').value;
+  const fe=document.getElementById('f_estado').value;
+  const fi=document.getElementById('f_interior').value;
+  let rows=Object.entries(rvPorChofer).map(([chofer,d])=>({
+    chofer,tipo:String(d.tipo||''),rv:d.rvTotal,viatico:d.viaticoTotal,estado:estadoClase(d.rvTotal)
+  }));
+  if(q)rows=rows.filter(r=>r.chofer.toLowerCase().includes(q));
+  if(ft)rows=rows.filter(r=>r.tipo===ft);
+  if(fe)rows=rows.filter(r=>r.estado===fe);
+  if(fi==="con") rows=rows.filter(r=>r.viatico>0);
+  if(fi==="sin") rows=rows.filter(r=>r.viatico===0);
+  const {col,dir}=sortState;
+  rows.sort((a,b)=>{
+    let A=a[col],B=b[col];
+    if(col==='rv'||col==='viatico'){A=Number(A);B=Number(B);}else{A=(A||'').toString().toLowerCase();B=(B||'').toString().toLowerCase();}
+    if(A<B)return dir==='asc'?-1:1;
+    if(A>B)return dir==='asc'?1:-1;
+    return 0;
+  });
+  return rows;
+}
+
+function renderTabla(){
+  const tbody=document.querySelector('#tabla tbody');
+  tbody.innerHTML='';
+  const rows=rowsFiltradas();
+  for(const r of rows){
+    const tr=document.createElement('tr');
+    if(r.estado==='bad')tr.classList.add('row-bad');
+    tr.innerHTML=`
+      <td>${r.chofer}</td>
+      <td>${r.tipo||'-'}</td>
+      <td>${fmtGs(r.rv)}</td>
+      <td>${fmtGs(r.viatico)}</td>
+      <td><span class="estado ${r.estado}">${r.estado==='ok'?'✅ Cumple meta':(r.estado==='prox'?'⚠️ Próximo a llegar':'❌ Fuera de meta')}</span></td>`;
+    tbody.appendChild(tr);
+  }
+}
+
+function renderGrafico(){
+  const rvPorDia={},viaticoPorDia={};
+  for(const v of viajes){
+    const f=(v["DATA DA VIAGEM"]||'').toString().trim();
+    if(!f)continue;
+    const rv=parseFloat(v["RV GENERAL"])||0;
+    const via=parseFloat(v["VIATICO"])||0;
+    rvPorDia[f]=(rvPorDia[f]||0)+rv;
+    viaticoPorDia[f]=(viaticoPorDia[f]||0)+via;
+  }
+  const fechas=Object.keys(rvPorDia).sort((a,b)=>new Date(a)-new Date(b));
+  const rvData=fechas.map(f=>rvPorDia[f]);
+  const viaData=fechas.map(f=>viaticoPorDia[f]||0);
+  Highcharts.chart('grafico',{
+    chart:{zoomType:'xy'},
+    title:{text:'RV Total vs Viático Acumulado'},
+    xAxis:{categories:fechas,crosshair:true},
+    yAxis:[{title:{text:'RV Total (₲)'},labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}},
+           {title:{text:'Viático (₲)'},opposite:true,labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}}],
+    tooltip:{shared:true,formatter:function(){let s='<b>'+this.x+'</b>';this.points.forEach(p=>{s+='<br/>'+p.series.name+': <b>₲ '+Highcharts.numberFormat(p.y,0,',','.')+'</b>';});return s;}},
+    series:[{name:'RV Total',type:'column',data:rvData},{name:'Viático',type:'spline',yAxis:1,data:viaData}]
+  });
+}
+
+function exportCSV(){
+  const rows=rowsFiltradas();
+  const head=['Chofer','Tipo','RV','Viáticos','Estado'];
+  const body=rows.map(r=>[r.chofer,r.tipo,r.rv,r.viatico,estadoTexto(r.estado)]);
+  const csv=[head.join(','),...body.map(row=>row.join(','))].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='choferes.csv';a.click();URL.revokeObjectURL(a.href);
+}
+
+document.getElementById('btn_csv').addEventListener('click',exportCSV);
+['search','f_tipo','f_estado','f_interior'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',renderTabla);
+  document.getElementById(id).addEventListener('change',renderTabla);
+});
+document.querySelectorAll('th[data-col]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const col=th.dataset.col;
+    if(sortState.col===col){sortState.dir=sortState.dir==='asc'?'desc':'asc';}
+    else{sortState.col=col;sortState.dir=(col==='chofer'||col==='estado')?'asc':'desc';}
+    renderTabla();
+  });
+});
+
+(async function init(){await cargarDatos();agruparPorChofer();kpis();renderTabla();renderGrafico();})();
+</script>
 </body>
 </html>
