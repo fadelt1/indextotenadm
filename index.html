@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://code.highcharts.com/highcharts.js"></script>
   <style>
-    :root{
+    :root {
       --primary:#002060;
       --secondary:#34d399;
       --danger:#e11d48;
@@ -15,65 +15,71 @@
       --bg:#f4f6f9;
       --card:#ffffff;
       --text:#333;
-      --sidebar:#001440;
     }
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--text)}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--text)}
+
+    /* Header */
     header{
-      position:sticky;
-      top:0;
-      z-index:30;
-      background:var(--card);
-      border-bottom:1px solid #e5e7eb;
-      padding:14px 18px;
-      text-align:center;   /* ✅ centra el título */
+      position:sticky;top:0;z-index:40;background:var(--card);
+      border-bottom:1px solid #e5e7eb;padding:14px;text-align:center
     }
-    .brand{
-      font-weight:700;
-      color:var(--primary);
-      font-size:20px;
-      letter-spacing:.3px;
-      display:inline-block;
+    .brand{font-weight:700;color:var(--primary);font-size:20px;letter-spacing:.3px}
+
+    /* Sidebar */
+    .sidebar{
+      background:linear-gradient(180deg,#002060,#001440);
+      color:#fff;width:240px;padding:20px;padding-top:60px;
+      position:fixed;top:0;left:0;bottom:0;
+      transition:transform .3s ease-in-out;z-index:50
     }
-    .wrap{display:grid;grid-template-columns:260px 1fr;min-height:100dvh}
-    aside{
-      background:var(--sidebar);color:#fff;padding:18px;position:sticky;top:0;align-self:start;height:100dvh
+    .sidebar.hidden{transform:translateX(-100%)}
+    .side-title{font-size:14px;margin-bottom:20px;opacity:.9;font-weight:600;letter-spacing:.5px}
+    .nav a{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:12px;
+      border-radius:8px;color:#fff;text-decoration:none;font-size:15px;transition:background .2s}
+    .nav a:hover{background:rgba(255,255,255,.15)}
+
+    /* Main */
+    main{transition:margin-left .3s;margin-left:240px;padding:20px}
+    .sidebar.hidden ~ main{margin-left:0}
+
+    /* Toggle */
+    .toggle-btn{
+      position:fixed;top:16px;left:16px;z-index:60;background:var(--primary);color:#fff;
+      border:none;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:18px
     }
-    .side-title{font-size:14px;letter-spacing:.6px;opacity:.9;margin:8px 0 14px}
-    .nav a{display:block;color:#fff;text-decoration:none;padding:10px 8px;border-radius:8px;opacity:.95}
-    .nav a:hover{background:rgba(255,255,255,.08)}
-    main{padding:18px}
+
+    /* Cards */
     .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:14px 0 18px}
-    .card{
-      background:var(--card);border-radius:14px;padding:16px;box-shadow:0 6px 16px rgba(0,0,0,.06);
-      border-top:5px solid transparent;display:flex;flex-direction:column;gap:8px;min-height:106px
-    }
+    .card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 6px 16px rgba(0,0,0,.06);
+      border-top:5px solid transparent;display:flex;flex-direction:column;gap:8px;min-height:106px}
     .card .k{font-size:13px;color:#6b7280}
     .card .v{font-size:26px;font-weight:700;color:var(--primary)}
     .c1{border-top-color:var(--primary)}
     .c2{border-top-color:var(--danger)}
     .c3{border-top-color:var(--warning)}
     .c4{border-top-color:var(--secondary)}
-    .toolbar{
-      background:var(--card);border:1px solid #e5e7eb;border-radius:12px;padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center
-    }
-    .toolbar input,.toolbar select{
-      padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;background:#fff;font-size:14px;min-width:160px
-    }
+
+    /* Toolbar */
+    .toolbar{background:var(--card);border:1px solid #e5e7eb;border-radius:12px;padding:10px;
+      display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+    .toolbar input,.toolbar select{padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;background:#fff;font-size:14px}
     .btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600}
     .btn-primary{background:var(--primary);color:#fff}
+
+    /* Tabla */
     .table-wrap{margin-top:14px;background:var(--card);border-radius:12px;border:1px solid #e5e7eb;overflow:auto}
     table{width:100%;border-collapse:collapse;font-size:14px;min-width:700px}
     th,td{padding:12px 10px;text-align:center;border-bottom:1px solid #f3f4f6}
-    th{background:#0b1d57;color:#fff;cursor:pointer;user-select:none;position:sticky;top:0;z-index:1}
+    th{background:#0b1d57;color:#fff;position:sticky;top:0;z-index:1}
     tr:hover td{background:#fafafa}
     .estado{display:inline-flex;align-items:center;gap:6px;font-weight:700;padding:4px 10px;border-radius:999px}
     .ok{background:#e6f9f1;color:#065f46}
     .prox{background:#fff7ed;color:#9a3412}
     .bad{background:#fee2e2;color:#991b1b}
     .row-bad{background:#fff5f5}
+
     #grafico{background:var(--card);border:1px solid #e5e7eb;border-radius:12px;margin:16px 0;padding:8px}
-    @media(max-width:980px){.wrap{grid-template-columns:1fr}aside{display:none}}
   </style>
 </head>
 <body>
@@ -81,16 +87,20 @@
     <span class="brand">🚛 Dashboard de Desempeño de Choferes</span>
   </header>
 
-  <div class="wrap">
-    <aside>
-      <div class="side-title">SEGUIMIENTO RV</div>
+  <button class="toggle-btn" id="toggleBtn">☰</button>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar hidden" id="sidebar">
+      <div class="side-title">Seguimiento RV</div>
       <nav class="nav">
-        <a href="#">Status de RV</a>
-        <a href="https://fadelt1.github.io/seguimientoporchofer/" target="_blank" rel="noopener">Tramos por Chofer</a>
-        <a href="https://fadelt1.github.io/historicorv/" target="_blank" rel="noopener">Histórico RV</a>
+        <a href="#">📊 Status de RV</a>
+        <a href="https://fadelt1.github.io/seguimientoporchofer/">🚚 Tramos por Chofer</a>
+        <a href="https://fadelt1.github.io/historicorv/">📈 Histórico RV</a>
       </nav>
     </aside>
 
+    <!-- Main -->
     <main>
       <!-- Cards -->
       <section class="cards">
@@ -130,11 +140,11 @@
         <table id="tabla">
           <thead>
             <tr>
-              <th data-col="chofer">Chofer</th>
-              <th data-col="tipo">Tipo</th>
-              <th data-col="rv">RV</th>
-              <th data-col="viatico">Viáticos</th>
-              <th data-col="estado">Estado</th>
+              <th>Chofer</th>
+              <th>Tipo</th>
+              <th>RV</th>
+              <th>Viáticos</th>
+              <th>Estado</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -144,149 +154,141 @@
   </div>
 
 <script>
-const FIREBASE_URL = "https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json";
-const META_RV = 585000;
-let viajes = [];
-let rvPorChofer = {};
-let sortState = { col: 'rv', dir: 'desc' };
+  const FIREBASE_URL = "https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json";
+  const META_RV = 585000;
+  let viajes = [];
+  let rvPorChofer = {};
 
-const fmtGs = n => '₲ ' + (Number(n)||0).toLocaleString('es-PY');
+  const fmtGs = n => '₲ ' + (Number(n)||0).toLocaleString('es-PY');
 
-async function cargarDatos(){
-  try{
-    const res = await fetch(FIREBASE_URL);
-    if(!res.ok) throw new Error('Error HTTP: '+res.status);
-    const data = await res.json();
-    viajes = data ? Object.values(data) : [];
-  }catch(err){console.error(err);viajes=[];}
-}
-
-function agruparPorChofer(){
-  rvPorChofer = viajes.reduce((acc,v)=>{
-    const chofer=(v["MOTORISTA 1"]||"").trim();
-    if(!chofer)return acc;
-    const tipo=String(v["TIPO"]||"").trim();
-    const rv=parseFloat(v["RV GENERAL"])||0;
-    const viatico=parseFloat(v["VIATICO"])||0;
-    if(!acc[chofer]) acc[chofer]={rvTotal:0,viaticoTotal:0,tipo};
-    acc[chofer].rvTotal+=rv;
-    acc[chofer].viaticoTotal+=viatico;
-    if(tipo) acc[chofer].tipo=tipo;
-    return acc;
-  },{});
-}
-
-function kpis(){
-  let totalRV=0;const t2=new Set(),t3=new Set(),fuera=new Set();
-  for(const [ch,d] of Object.entries(rvPorChofer)){
-    totalRV+=d.rvTotal;
-    if(d.rvTotal<META_RV)fuera.add(ch);
-    if(String(d.tipo)==='2'&&d.rvTotal<META_RV)t2.add(ch);
-    if(String(d.tipo)==='3'&&d.rvTotal<META_RV)t3.add(ch);
-  }
-  document.getElementById('k_totalRV').textContent=fmtGs(totalRV);
-  document.getElementById('k_fuera').textContent=fuera.size;
-  document.getElementById('k_t2').textContent=t2.size;
-  document.getElementById('k_t3').textContent=t3.size;
-}
-
-function estadoClase(rv){
-  if(rv < 500000) return 'bad';          // fuera de meta
-  if(rv < META_RV) return 'prox';        // próximo a llegar
-  return 'ok';                           // cumple meta
-}
-function estadoTexto(c){
-  return c==='bad'?'Fuera de meta':(c==='prox'?'Próximo a llegar':'Cumple meta');
-}
-
-function rowsFiltradas(){
-  const q=(document.getElementById('search').value||'').toLowerCase();
-  const ft=document.getElementById('f_tipo').value;
-  const fe=document.getElementById('f_estado').value;
-  const fi=document.getElementById('f_interior').value;
-  let rows=Object.entries(rvPorChofer).map(([chofer,d])=>({
-    chofer,tipo:String(d.tipo||''),rv:d.rvTotal,viatico:d.viaticoTotal,estado:estadoClase(d.rvTotal)
-  }));
-  if(q)rows=rows.filter(r=>r.chofer.toLowerCase().includes(q));
-  if(ft)rows=rows.filter(r=>r.tipo===ft);
-  if(fe)rows=rows.filter(r=>r.estado===fe);
-  if(fi==="con") rows=rows.filter(r=>r.viatico>0);
-  if(fi==="sin") rows=rows.filter(r=>r.viatico===0);
-  const {col,dir}=sortState;
-  rows.sort((a,b)=>{
-    let A=a[col],B=b[col];
-    if(col==='rv'||col==='viatico'){A=Number(A);B=Number(B);}else{A=(A||'').toString().toLowerCase();B=(B||'').toString().toLowerCase();}
-    if(A<B)return dir==='asc'?-1:1;
-    if(A>B)return dir==='asc'?1:-1;
-    return 0;
+  // Toggle sidebar
+  const sidebar = document.getElementById("sidebar");
+  document.getElementById("toggleBtn").addEventListener("click",()=>{
+    sidebar.classList.toggle("hidden");
   });
-  return rows;
-}
-
-function renderTabla(){
-  const tbody=document.querySelector('#tabla tbody');
-  tbody.innerHTML='';
-  const rows=rowsFiltradas();
-  for(const r of rows){
-    const tr=document.createElement('tr');
-    if(r.estado==='bad')tr.classList.add('row-bad');
-    tr.innerHTML=`
-      <td>${r.chofer}</td>
-      <td>${r.tipo||'-'}</td>
-      <td>${fmtGs(r.rv)}</td>
-      <td>${fmtGs(r.viatico)}</td>
-      <td><span class="estado ${r.estado}">${r.estado==='ok'?'✅ Cumple meta':(r.estado==='prox'?'⚠️ Próximo a llegar':'❌ Fuera de meta')}</span></td>`;
-    tbody.appendChild(tr);
-  }
-}
-
-function renderGrafico(){
-  const rvPorDia={},viaticoPorDia={};
-  for(const v of viajes){
-    const f=(v["DATA DA VIAGEM"]||'').toString().trim();
-    if(!f)continue;
-    const rv=parseFloat(v["RV GENERAL"])||0;
-    const via=parseFloat(v["VIATICO"])||0;
-    rvPorDia[f]=(rvPorDia[f]||0)+rv;
-    viaticoPorDia[f]=(viaticoPorDia[f]||0)+via;
-  }
-  const fechas=Object.keys(rvPorDia).sort((a,b)=>new Date(a)-new Date(b));
-  const rvData=fechas.map(f=>rvPorDia[f]);
-  const viaData=fechas.map(f=>viaticoPorDia[f]||0);
-  Highcharts.chart('grafico',{
-    chart:{zoomType:'xy'},
-    title:{text:'RV Total vs Viático Acumulado'},
-    xAxis:{categories:fechas,crosshair:true},
-    yAxis:[{title:{text:'RV Total (₲)'},labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}},
-           {title:{text:'Viático (₲)'},opposite:true,labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}}],
-    tooltip:{shared:true,formatter:function(){let s='<b>'+this.x+'</b>';this.points.forEach(p=>{s+='<br/>'+p.series.name+': <b>₲ '+Highcharts.numberFormat(p.y,0,',','.')+'</b>';});return s;}},
-    series:[{name:'RV Total',type:'column',data:rvData},{name:'Viático',type:'spline',yAxis:1,data:viaData}]
+  document.querySelectorAll(".nav a").forEach(link=>{
+    link.addEventListener("click",()=> sidebar.classList.add("hidden"));
   });
-}
 
-function exportCSV(){
-  const rows=rowsFiltradas();
-  const head=['Chofer','Tipo','RV','Viáticos','Estado'];
-  const body=rows.map(r=>[r.chofer,r.tipo,r.rv,r.viatico,estadoTexto(r.estado)]);
-  const csv=[head.join(','),...body.map(row=>row.join(','))].join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='choferes.csv';a.click();URL.revokeObjectURL(a.href);
-}
+  // Cargar datos Firebase
+  async function cargarDatos(){
+    try{
+      const res = await fetch(FIREBASE_URL);
+      if(!res.ok) throw new Error('Error HTTP: '+res.status);
+      const data = await res.json();
+      viajes = data ? Object.values(data) : [];
+      agruparPorChofer();
+      renderTabla();
+      renderGrafico();
+      kpis();
+    }catch(err){
+      console.error("Error Firebase:",err);
+    }
+  }
 
-document.getElementById('btn_csv').addEventListener('click',exportCSV);
-['search','f_tipo','f_estado','f_interior'].forEach(id=>{
-  document.getElementById(id).addEventListener('input',renderTabla);
-  document.getElementById(id).addEventListener('change',renderTabla);
-});
-document.querySelectorAll('th[data-col]').forEach(th=>{
-  th.addEventListener('click',()=>{
-    const col=th.dataset.col;
-    if(sortState.col===col){sortState.dir=sortState.dir==='asc'?'desc':'asc';}
-    else{sortState.col=col;sortState.dir=(col==='chofer'||col==='estado')?'asc':'desc';}
-    renderTabla();
-  });
-});
+  function agruparPorChofer(){
+    rvPorChofer = viajes.reduce((acc,v)=>{
+      const chofer=(v["MOTORISTA 1"]||"").trim();
+      if(!chofer)return acc;
+      const tipo=String(v["TIPO"]||"").trim();
+      const rv=parseFloat(v["RV GENERAL"])||0;
+      const viatico=parseFloat(v["VIATICO"])||0;
+      if(!acc[chofer]) acc[chofer]={rvTotal:0,viaticoTotal:0,tipo};
+      acc[chofer].rvTotal+=rv;
+      acc[chofer].viaticoTotal+=viatico;
+      if(tipo) acc[chofer].tipo=tipo;
+      return acc;
+    },{});
+  }
 
-(async function init(){await cargarDatos();agruparPorChofer();kpis();renderTabla();renderGrafico();})();
+  function kpis(){
+    let totalRV=0;const t2=new Set(),t3=new Set(),fuera=new Set();
+    for(const [ch,d] of Object.entries(rvPorChofer)){
+      totalRV+=d.rvTotal;
+      if(d.rvTotal<META_RV)fuera.add(ch);
+      if(String(d.tipo)==='2'&&d.rvTotal<META_RV)t2.add(ch);
+      if(String(d.tipo)==='3'&&d.rvTotal<META_RV)t3.add(ch);
+    }
+    document.getElementById('k_totalRV').textContent=fmtGs(totalRV);
+    document.getElementById('k_fuera').textContent=fuera.size;
+    document.getElementById('k_t2').textContent=t2.size;
+    document.getElementById('k_t3').textContent=t3.size;
+  }
+
+  function estadoClase(rv){
+    if(rv < 500000) return 'bad';
+    if(rv < META_RV) return 'prox';
+    return 'ok';
+  }
+
+  // Render tabla con filtros
+  function renderTabla(){
+    const tbody=document.querySelector('#tabla tbody');
+    tbody.innerHTML='';
+    const lista = Object.entries(rvPorChofer).sort((a,b)=> b[1].rvTotal - a[1].rvTotal);
+
+    // Tomar filtros
+    const filtroNombre = document.getElementById("search").value.toLowerCase();
+    const filtroTipo = document.getElementById("f_tipo").value;
+    const filtroEstado = document.getElementById("f_estado").value;
+    const filtroInterior = document.getElementById("f_interior").value;
+
+    for(const [chofer,d] of lista){
+      const estado=estadoClase(d.rvTotal);
+
+      // Aplica filtros
+      if(filtroNombre && !chofer.toLowerCase().includes(filtroNombre)) continue;
+      if(filtroTipo && d.tipo !== filtroTipo) continue;
+      if(filtroEstado && estado !== filtroEstado) continue;
+      if(filtroInterior==="con" && d.viaticoTotal<=0) continue;
+      if(filtroInterior==="sin" && d.viaticoTotal>0) continue;
+
+      const tr=document.createElement('tr');
+      if(estado==='bad')tr.classList.add('row-bad');
+      tr.innerHTML=`
+        <td>${chofer}</td>
+        <td>${d.tipo||'-'}</td>
+        <td>${fmtGs(d.rvTotal)}</td>
+        <td>${fmtGs(d.viaticoTotal)}</td>
+        <td><span class="estado ${estado}">
+          ${estado==='ok'?'✅ Cumple meta':(estado==='prox'?'⚠️ Próximo a llegar':'❌ Fuera de meta')}
+        </span></td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // Gráfico
+  function renderGrafico(){
+    const rvPorDia={},viaticoPorDia={};
+    for(const v of viajes){
+      const f=(v["DATA DA VIAGEM"]||'').toString().trim();
+      if(!f)continue;
+      const rv=parseFloat(v["RV GENERAL"])||0;
+      const via=parseFloat(v["VIATICO"])||0;
+      rvPorDia[f]=(rvPorDia[f]||0)+rv;
+      viaticoPorDia[f]=(viaticoPorDia[f]||0)+via;
+    }
+    const fechas=Object.keys(rvPorDia).sort((a,b)=>new Date(a)-new Date(b));
+    const rvData=fechas.map(f=>rvPorDia[f]);
+    const viaData=fechas.map(f=>viaticoPorDia[f]||0);
+    Highcharts.chart('grafico',{
+      chart:{zoomType:'xy'},
+      title:{text:'RV Total vs Viático Acumulado'},
+      xAxis:{categories:fechas,crosshair:true},
+      yAxis:[{title:{text:'RV Total (₲)'},labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}},
+             {title:{text:'Viático (₲)'},opposite:true,labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}}],
+      tooltip:{shared:true,formatter:function(){let s='<b>'+this.x+'</b>';this.points.forEach(p=>{s+='<br/>'+p.series.name+': <b>₲ '+Highcharts.numberFormat(p.y,0,',','.')+'</b>';});return s;}},
+      series:[{name:'RV Total',type:'column',data:rvData},{name:'Viático',type:'spline',yAxis:1,data:viaData}]
+    });
+  }
+
+  // Eventos para filtros
+  document.getElementById("search").addEventListener("input",renderTabla);
+  document.getElementById("f_tipo").addEventListener("change",renderTabla);
+  document.getElementById("f_estado").addEventListener("change",renderTabla);
+  document.getElementById("f_interior").addEventListener("change",renderTabla);
+
+  (async()=>{await cargarDatos();})();
 </script>
 </body>
 </html>
