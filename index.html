@@ -19,13 +19,18 @@
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--text)}
 
-    header{position:sticky;top:0;z-index:40;background:var(--card);
-      border-bottom:1px solid #e5e7eb;padding:14px;text-align:center}
+    header{
+      position:sticky;top:0;z-index:40;background:var(--card);
+      border-bottom:1px solid #e5e7eb;padding:14px;text-align:center
+    }
     .brand{font-weight:700;color:var(--primary);font-size:20px;letter-spacing:.3px}
 
-    .sidebar{background:linear-gradient(180deg,#002060,#001440);color:#fff;width:240px;
-      padding:20px;padding-top:60px;position:fixed;top:0;left:0;bottom:0;
-      transition:transform .3s ease-in-out;z-index:50}
+    .sidebar{
+      background:linear-gradient(180deg,#002060,#001440);
+      color:#fff;width:240px;padding:20px;padding-top:60px;
+      position:fixed;top:0;left:0;bottom:0;
+      transition:transform .3s ease-in-out;z-index:50
+    }
     .sidebar.hidden{transform:translateX(-100%)}
     .side-title{font-size:14px;margin-bottom:20px;opacity:.9;font-weight:600;letter-spacing:.5px}
     .nav a{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:12px;
@@ -46,21 +51,51 @@
     .c1{border-top-color:var(--primary)}.c2{border-top-color:var(--danger)}
     .c3{border-top-color:var(--warning)}.c4{border-top-color:var(--secondary)}
 
-    .toolbar{background:var(--card);border:1px solid #e5e7eb;border-radius:12px;padding:10px;
-      display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-    .toolbar input,.toolbar select{padding:10px 12px;border:1px solid #d1d5db;border-radius:10px;background:#fff;font-size:14px}
+    #grafico{
+      background:var(--card);
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      margin:16px 0 24px;
+      padding:8px;
+    }
+
+    .toolbar{
+      background:var(--card);
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      padding:12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:20px;
+    }
+    .toolbar input,.toolbar select{
+      padding:10px 12px;
+      border:1px solid #d1d5db;
+      border-radius:10px;
+      background:#fff;
+      font-size:14px;
+    }
     .btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600}
     .btn-primary{background:var(--primary);color:#fff}
 
-    .table-wrap{margin-top:14px;background:var(--card);border-radius:12px;border:1px solid #e5e7eb;overflow:auto}
+    .table-wrap{
+      background:var(--card);
+      border-radius:12px;
+      border:1px solid #e5e7eb;
+      overflow:auto;
+    }
     table{width:100%;border-collapse:collapse;font-size:14px;min-width:700px}
     th,td{padding:12px 10px;text-align:center;border-bottom:1px solid #f3f4f6}
     th{background:#0b1d57;color:#fff;position:sticky;top:0;z-index:1}
     tr:hover td{background:#fafafa}
     .estado{display:inline-flex;align-items:center;gap:6px;font-weight:700;padding:4px 10px;border-radius:999px}
-    .ok{background:#e6f9f1;color:#065f46}.prox{background:#fff7ed;color:#9a3412}.bad{background:#fee2e2;color:#991b1b}
+    .ok{background:#e6f9f1;color:#065f46}
+    .prox{background:#fff7ed;color:#9a3412}
+    .bad{background:#fee2e2;color:#991b1b}
     .row-bad{background:#fff5f5}
-    #grafico{background:var(--card);border:1px solid #e5e7eb;border-radius:12px;margin:16px 0;padding:8px}
   </style>
 </head>
 <body>
@@ -78,6 +113,7 @@
     </aside>
 
     <main>
+      <!-- Tarjetas -->
       <section class="cards">
         <div class="card c1"><div class="k">Total de RV</div><div class="v" id="k_totalRV">₲ 0</div></div>
         <div class="card c2"><div class="k">Total fuera de la meta</div><div class="v" id="k_fuera">0</div></div>
@@ -85,6 +121,10 @@
         <div class="card c4"><div class="k">Tipo 3 fuera de meta</div><div class="v" id="k_t3">0</div></div>
       </section>
 
+      <!-- Gráfico -->
+      <div id="grafico"></div>
+
+      <!-- Toolbar (ahora abajo del gráfico) -->
       <section class="toolbar">
         <input id="search" type="text" placeholder="Buscar chofer..." />
         <select id="f_tipo">
@@ -106,8 +146,7 @@
         <button class="btn btn-primary" id="btn_csv">📤 Exportar CSV</button>
       </section>
 
-      <div id="grafico"></div>
-
+      <!-- Tabla -->
       <div class="table-wrap">
         <table id="tabla">
           <thead>
@@ -125,120 +164,134 @@
     </main>
   </div>
 
-<script>
-  const FIREBASE_URL="https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json";
-  const META_RV=585000;let viajes=[],rvPorChofer={};
-  const fmtGs=n=>'₲ '+(Number(n)||0).toLocaleString('es-PY');
+  <script>
+    const FIREBASE_URL = "https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json";
+    const META_RV = 585000;
+    let viajes = [];
+    let rvPorChofer = {};
+    const fmtGs = n => '₲ ' + (Number(n)||0).toLocaleString('es-PY');
 
-  const sidebar=document.getElementById("sidebar");
-  document.getElementById("toggleBtn").addEventListener("click",()=>{sidebar.classList.toggle("hidden")});
-  document.querySelectorAll(".nav a").forEach(link=>{link.addEventListener("click",()=> sidebar.classList.add("hidden"))});
+    const sidebar = document.getElementById("sidebar");
+    document.getElementById("toggleBtn").addEventListener("click",()=> sidebar.classList.toggle("hidden"));
+    document.querySelectorAll(".nav a").forEach(link=>link.addEventListener("click",()=> sidebar.classList.add("hidden")));
 
-  async function cargarDatos(){
-    try{
-      const res=await fetch(FIREBASE_URL);if(!res.ok) throw new Error('Error HTTP: '+res.status);
-      const data=await res.json();viajes=data?Object.values(data):[];
-      agruparPorChofer();renderTabla();renderGrafico();kpis();
-    }catch(err){console.error("Error Firebase:",err);}
-  }
-
-  function agruparPorChofer(){
-    rvPorChofer=viajes.reduce((acc,v)=>{
-      const chofer=(v["MOTORISTA 1"]||"").trim();if(!chofer)return acc;
-      const tipo=String(v["TIPO"]||"").trim();
-      const rv=parseFloat(v["RV GENERAL"])||0;const viatico=parseFloat(v["VIATICO"])||0;
-      if(!acc[chofer]) acc[chofer]={rvTotal:0,viaticoTotal:0,tipo};
-      acc[chofer].rvTotal+=rv;acc[chofer].viaticoTotal+=viatico;if(tipo) acc[chofer].tipo=tipo;return acc;
-    },{});
-  }
-
-  function kpis(){
-    let totalRV=0;const t2=new Set(),t3=new Set(),fuera=new Set();
-    for(const [ch,d] of Object.entries(rvPorChofer)){
-      totalRV+=d.rvTotal;
-      if(d.rvTotal<META_RV)fuera.add(ch);
-      if(String(d.tipo)==='2'&&d.rvTotal<META_RV)t2.add(ch);
-      if(String(d.tipo)==='3'&&d.rvTotal<META_RV)t3.add(ch);
+    async function cargarDatos(){
+      try{
+        const res = await fetch(FIREBASE_URL);
+        if(!res.ok) throw new Error('Error HTTP: '+res.status);
+        const data = await res.json();
+        viajes = data ? Object.values(data) : [];
+        agruparPorChofer();
+        renderTabla();
+        renderGrafico();
+        kpis();
+      }catch(err){console.error("Error Firebase:",err);}
     }
-    document.getElementById('k_totalRV').textContent=fmtGs(totalRV);
-    document.getElementById('k_fuera').textContent=fuera.size;
-    document.getElementById('k_t2').textContent=t2.size;
-    document.getElementById('k_t3').textContent=t3.size;
-  }
 
-  function estadoClase(rv){if(rv<500000) return 'bad';if(rv<META_RV) return 'prox';return 'ok';}
-
-  function getListaFiltrada(){
-    const filtroNombre=document.getElementById("search").value.toLowerCase();
-    const filtroTipo=document.getElementById("f_tipo").value;
-    const filtroEstado=document.getElementById("f_estado").value;
-    const filtroInterior=document.getElementById("f_interior").value;
-    return Object.entries(rvPorChofer).sort((a,b)=>b[1].rvTotal-a[1].rvTotal).filter(([chofer,d])=>{
-      const estado=estadoClase(d.rvTotal);
-      if(filtroNombre && !chofer.toLowerCase().includes(filtroNombre)) return false;
-      if(filtroTipo && d.tipo!==filtroTipo) return false;
-      if(filtroEstado && estado!==filtroEstado) return false;
-      if(filtroInterior==="con" && d.viaticoTotal<=0) return false;
-      if(filtroInterior==="sin" && d.viaticoTotal>0) return false;
-      return true;
-    });
-  }
-
-  function renderTabla(){
-    const tbody=document.querySelector('#tabla tbody');tbody.innerHTML='';
-    const lista=getListaFiltrada();
-    for(const [chofer,d] of lista){
-      const estado=estadoClase(d.rvTotal);
-      const tr=document.createElement('tr');if(estado==='bad')tr.classList.add('row-bad');
-      tr.innerHTML=`<td>${chofer}</td><td>${d.tipo||'-'}</td><td>${fmtGs(d.rvTotal)}</td>
-                    <td>${fmtGs(d.viaticoTotal)}</td>
-                    <td><span class="estado ${estado}">
-                    ${estado==='ok'?'✅ Cumple meta':(estado==='prox'?'⚠️ Próximo a llegar':'❌ Fuera de meta')}</span></td>`;
-      tbody.appendChild(tr);
+    function agruparPorChofer(){
+      rvPorChofer = viajes.reduce((acc,v)=>{
+        const chofer=(v["MOTORISTA 1"]||"").trim();
+        if(!chofer)return acc;
+        const tipo=String(v["TIPO"]||"").trim();
+        const rv=parseFloat(v["RV GENERAL"])||0;
+        const viatico=parseFloat(v["VIATICO"])||0;
+        if(!acc[chofer]) acc[chofer]={rvTotal:0,viaticoTotal:0,tipo};
+        acc[chofer].rvTotal+=rv;
+        acc[chofer].viaticoTotal+=viatico;
+        if(tipo) acc[chofer].tipo=tipo;
+        return acc;
+      },{});
     }
-  }
 
-  function renderGrafico(){
-    const rvPorDia={},viaticoPorDia={};
-    for(const v of viajes){
-      const f=(v["DATA DA VIAGEM"]||'').toString().trim();if(!f)continue;
-      const rv=parseFloat(v["RV GENERAL"])||0;const via=parseFloat(v["VIATICO"])||0;
-      rvPorDia[f]=(rvPorDia[f]||0)+rv;viaticoPorDia[f]=(viaticoPorDia[f]||0)+via;
+    function kpis(){
+      let totalRV=0;const t2=new Set(),t3=new Set(),fuera=new Set();
+      for(const [ch,d] of Object.entries(rvPorChofer)){
+        totalRV+=d.rvTotal;
+        if(d.rvTotal<META_RV)fuera.add(ch);
+        if(String(d.tipo)==='2'&&d.rvTotal<META_RV)t2.add(ch);
+        if(String(d.tipo)==='3'&&d.rvTotal<META_RV)t3.add(ch);
+      }
+      document.getElementById('k_totalRV').textContent=fmtGs(totalRV);
+      document.getElementById('k_fuera').textContent=fuera.size;
+      document.getElementById('k_t2').textContent=t2.size;
+      document.getElementById('k_t3').textContent=t3.size;
     }
-    const fechas=Object.keys(rvPorDia).sort((a,b)=>new Date(a)-new Date(b));
-    const rvData=fechas.map(f=>rvPorDia[f]);const viaData=fechas.map(f=>viaticoPorDia[f]||0);
-    Highcharts.chart('grafico',{chart:{zoomType:'xy'},title:{text:'RV Total vs Viático Acumulado'},
-      xAxis:{categories:fechas,crosshair:true},
-      yAxis:[{title:{text:'RV Total (₲)'},labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}},
-             {title:{text:'Viático (₲)'},opposite:true,labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}}],
-      tooltip:{shared:true,formatter:function(){let s='<b>'+this.x+'</b>';this.points.forEach(p=>{s+='<br/>'+p.series.name+': <b>₲ '+Highcharts.numberFormat(p.y,0,',','.')+'</b>';});return s;}},
-      series:[{name:'RV Total',type:'column',data:rvData},{name:'Viático',type:'spline',yAxis:1,data:viaData}]});
-  }
 
-  // Exportar CSV
-  function exportarCSV(){
-    const lista=getListaFiltrada();
-    let csv="Chofer,Tipo,RV,Viaticos,Estado\n";
-    lista.forEach(([chofer,d])=>{
-      const estado=estadoClase(d.rvTotal);
-      const estadoTxt=estado==='ok'?'Cumple meta':(estado==='prox'?'Proximo a llegar':'Fuera de meta');
-      csv+=`"${chofer}",${d.tipo||"-"},${d.rvTotal},${d.viaticoTotal},"${estadoTxt}"\n`;
-    });
-    const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
-    const link=document.createElement("a");
-    link.href=URL.createObjectURL(blob);
-    link.setAttribute("download","dashboard_choferes.csv");
-    document.body.appendChild(link);link.click();document.body.removeChild(link);
-  }
+    function estadoClase(rv){
+      if(rv < 500000) return 'bad';
+      if(rv < META_RV) return 'prox';
+      return 'ok';
+    }
 
-  document.getElementById("search").addEventListener("input",renderTabla);
-  document.getElementById("f_tipo").addEventListener("change",renderTabla);
-  document.getElementById("f_estado").addEventListener("change",renderTabla);
-  document.getElementById("f_interior").addEventListener("change",renderTabla);
-  document.getElementById("btn_csv").addEventListener("click",exportarCSV);
+    function getListaFiltrada(){
+      const filtroNombre=document.getElementById("search").value.toLowerCase();
+      const filtroTipo=document.getElementById("f_tipo").value;
+      const filtroEstado=document.getElementById("f_estado").value;
+      const filtroInterior=document.getElementById("f_interior").value;
+      return Object.entries(rvPorChofer).sort((a,b)=>b[1].rvTotal-a[1].rvTotal).filter(([chofer,d])=>{
+        const estado=estadoClase(d.rvTotal);
+        if(filtroNombre && !chofer.toLowerCase().includes(filtroNombre)) return false;
+        if(filtroTipo && d.tipo!==filtroTipo) return false;
+        if(filtroEstado && estado!==filtroEstado) return false;
+        if(filtroInterior==="con" && d.viaticoTotal<=0) return false;
+        if(filtroInterior==="sin" && d.viaticoTotal>0) return false;
+        return true;
+      });
+    }
 
-  (async()=>{await cargarDatos();})();
-</script>
+    function renderTabla(){
+      const tbody=document.querySelector('#tabla tbody');tbody.innerHTML='';
+      const lista=getListaFiltrada();
+      for(const [chofer,d] of lista){
+        const estado=estadoClase(d.rvTotal);
+        const tr=document.createElement('tr');if(estado==='bad')tr.classList.add('row-bad');
+        tr.innerHTML=`<td>${chofer}</td><td>${d.tipo||'-'}</td><td>${fmtGs(d.rvTotal)}</td>
+                      <td>${fmtGs(d.viaticoTotal)}</td>
+                      <td><span class="estado ${estado}">
+                      ${estado==='ok'?'✅ Cumple meta':(estado==='prox'?'⚠️ Próximo a llegar':'❌ Fuera de meta')}</span></td>`;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderGrafico(){
+      const rvPorDia={},viaticoPorDia={};
+      for(const v of viajes){
+        const f=(v["DATA DA VIAGEM"]||'').toString().trim();if(!f)continue;
+        const rv=parseFloat(v["RV GENERAL"])||0;const via=parseFloat(v["VIATICO"])||0;
+        rvPorDia[f]=(rvPorDia[f]||0)+rv;viaticoPorDia[f]=(viaticoPorDia[f]||0)+via;
+      }
+      const fechas=Object.keys(rvPorDia).sort((a,b)=>new Date(a)-new Date(b));
+      const rvData=fechas.map(f=>rvPorDia[f]);const viaData=fechas.map(f=>viaticoPorDia[f]||0);
+      Highcharts.chart('grafico',{chart:{zoomType:'xy'},title:{text:'RV Total vs Viático Acumulado'},
+        xAxis:{categories:fechas,crosshair:true},
+        yAxis:[{title:{text:'RV Total (₲)'},labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}},
+               {title:{text:'Viático (₲)'},opposite:true,labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}}],
+        tooltip:{shared:true,formatter:function(){let s='<b>'+this.x+'</b>';this.points.forEach(p=>{s+='<br/>'+p.series.name+': <b>₲ '+Highcharts.numberFormat(p.y,0,',','.')+'</b>';});return s;}},
+        series:[{name:'RV Total',type:'column',data:rvData},{name:'Viático',type:'spline',yAxis:1,data:viaData}]});
+    }
+
+    function exportarCSV(){
+      const lista=getListaFiltrada();
+      let csv="Chofer,Tipo,RV,Viaticos,Estado\n";
+      lista.forEach(([chofer,d])=>{
+        const estado=estadoClase(d.rvTotal);
+        const estadoTxt=estado==='ok'?'Cumple meta':(estado==='prox'?'Proximo a llegar':'Fuera de meta');
+        csv+=`"${chofer}",${d.tipo||"-"},${d.rvTotal},${d.viaticoTotal},"${estadoTxt}"\n`;
+      });
+      const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+      const link=document.createElement("a");
+      link.href=URL.createObjectURL(blob);
+      link.setAttribute("download","dashboard_choferes.csv");
+      document.body.appendChild(link);link.click();document.body.removeChild(link);
+    }
+
+    document.getElementById("search").addEventListener("input",renderTabla);
+    document.getElementById("f_tipo").addEventListener("change",renderTabla);
+    document.getElementById("f_estado").addEventListener("change",renderTabla);
+    document.getElementById("f_interior").addEventListener("change",renderTabla);
+    document.getElementById("btn_csv").addEventListener("click",exportarCSV);
+
+    (async()=>{await cargarDatos();})();
+  </script>
 </body>
 </html>
-
