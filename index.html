@@ -1,297 +1,814 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard de Choferes</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <title>RV por Chofer – Corte Actual</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary:#002060;
-      --secondary:#34d399;
-      --danger:#e11d48;
-      --warning:#f59e0b;
-      --bg:#f4f6f9;
-      --card:#ffffff;
-      --text:#333;
+      --primary:#002060; --primary-light:#0a3080;
+      --green:#34d399;   --green-dark:#059669;
+      --red:#e11d48;     --yellow:#f59e0b;
+      --bg:#f4f6f9;      --card:#fff;
+      --border:#e5e7eb;  --text:#1f2937; --muted:#6b7280;
+      --font:'Montserrat',sans-serif;
+      --sidebar-w:240px;
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Montserrat',sans-serif;background:var(--bg);color:var(--text)}
+    body{font-family:var(--font);background:var(--bg);color:var(--text)}
 
+    /* ── Header ── */
     header{
-      position:sticky;top:0;z-index:40;background:var(--card);
-      border-bottom:1px solid #e5e7eb;padding:14px;text-align:center
+      background:var(--card);border-bottom:1px solid var(--border);
+      padding:14px 20px;text-align:center;position:sticky;top:0;z-index:40;
     }
-    .brand{font-weight:700;color:var(--primary);font-size:20px;letter-spacing:.3px}
+    .brand{font-weight:700;color:var(--primary);font-size:18px;letter-spacing:.3px}
 
+    /* ── Sidebar ── */
     .sidebar{
       background:linear-gradient(180deg,#002060,#001440);
-      color:#fff;width:240px;padding:20px;padding-top:60px;
+      color:#fff;width:var(--sidebar-w);padding:20px;padding-top:60px;
       position:fixed;top:0;left:0;bottom:0;
-      transition:transform .3s ease-in-out;z-index:50
+      transition:transform .3s ease-in-out;z-index:50;
+      overflow-y:auto;
     }
     .sidebar.hidden{transform:translateX(-100%)}
     .side-title{font-size:14px;margin-bottom:20px;opacity:.9;font-weight:600;letter-spacing:.5px}
-    .nav a{display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:12px;
-      border-radius:8px;color:#fff;text-decoration:none;font-size:15px;transition:background .2s}
+    .nav a{
+      display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:8px;
+      border-radius:8px;color:#fff;text-decoration:none;font-size:14px;transition:background .2s;
+    }
     .nav a:hover{background:rgba(255,255,255,.15)}
-
-    main{transition:margin-left .3s;margin-left:240px;padding:20px}
-    .sidebar.hidden ~ main{margin-left:0}
-
-    .toggle-btn{position:fixed;top:16px;left:16px;z-index:60;background:var(--primary);color:#fff;
-      border:none;border-radius:6px;padding:8px 12px;cursor:pointer;font-size:18px}
-
-    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:14px 0 18px}
-    .card{background:var(--card);border-radius:14px;padding:16px;box-shadow:0 6px 16px rgba(0,0,0,.06);
-      border-top:5px solid transparent;display:flex;flex-direction:column;gap:8px;min-height:106px}
-    .card .k{font-size:13px;color:#6b7280}
-    .card .v{font-size:26px;font-weight:700;color:var(--primary)}
-    .c1{border-top-color:var(--primary)}.c2{border-top-color:var(--danger)}
-    .c3{border-top-color:var(--warning)}.c4{border-top-color:var(--secondary)}
-
-    #grafico{
-      background:var(--card);
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      margin:16px 0 24px;
-      padding:8px;
+    .toggle-btn{
+      position:fixed;top:14px;left:14px;z-index:60;
+      background:var(--primary);color:#fff;border:none;
+      border-radius:6px;padding:8px 12px;cursor:pointer;font-size:18px;
     }
 
-    .toolbar{
-      background:var(--card);
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      padding:12px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-      justify-content:center;
-      margin-bottom:20px;
-    }
-    .toolbar input,.toolbar select{
-      padding:10px 12px;
-      border:1px solid #d1d5db;
-      border-radius:10px;
-      background:#fff;
-      font-size:14px;
-    }
-    .btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:600}
-    .btn-primary{background:var(--primary);color:#fff}
+    /* ── Main ── */
+    main{transition:margin-left .3s;margin-left:0;padding:20px}
+    .sidebar:not(.hidden) ~ main{margin-left:var(--sidebar-w)}
 
-    .table-wrap{
-      background:var(--card);
-      border-radius:12px;
-      border:1px solid #e5e7eb;
-      overflow:auto;
+    /* ── Error banner ── */
+    .error-banner{
+      background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;
+      border-radius:10px;padding:14px 18px;margin-bottom:18px;
+      display:none;font-size:13px;
     }
-    table{width:100%;border-collapse:collapse;font-size:14px;min-width:700px}
-    th,td{padding:12px 10px;text-align:center;border-bottom:1px solid #f3f4f6}
-    th{background:#0b1d57;color:#fff;position:sticky;top:0;z-index:1}
-    tr:hover td{background:#fafafa}
-    .estado{display:inline-flex;align-items:center;gap:6px;font-weight:700;padding:4px 10px;border-radius:999px}
-    .ok{background:#e6f9f1;color:#065f46}
-    .prox{background:#fff7ed;color:#9a3412}
-    .bad{background:#fee2e2;color:#991b1b}
-    .row-bad{background:#fff5f5}
+    .error-banner.show{display:flex;align-items:center;gap:10px;}
+
+    /* ── KPIs ── */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:22px}
+    .kpi{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.07);border-left:5px solid var(--primary)}
+    .kpi.green{border-left-color:var(--green)} .kpi.red{border-left-color:var(--red)} .kpi.yellow{border-left-color:var(--yellow)}
+    .kpi-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px}
+    .kpi-val{font-size:1.9rem;font-weight:700;color:var(--primary)}
+    .kpi.green .kpi-val{color:var(--green-dark)} .kpi.red .kpi-val{color:var(--red)} .kpi.yellow .kpi-val{color:var(--yellow)}
+    .kpi-sub{font-size:11px;color:var(--muted);margin-top:4px}
+    .kpi-bar{height:3px;background:#e5e7eb;border-radius:2px;margin-top:10px}
+    .kpi-bar-fill{height:100%;background:var(--green);border-radius:2px;transition:width 1s ease}
+
+    /* ── Toolbar ── */
+    .toolbar{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:20px}
+    .toolbar input,.toolbar select{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:var(--font);font-size:13px;outline:none;background:#fff}
+    .toolbar input:focus,.toolbar select:focus{border-color:var(--primary)}
+    .toolbar input{flex:1;min-width:180px}
+    .btn{border:none;border-radius:8px;padding:9px 14px;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;transition:all .2s}
+    .btn-primary{background:var(--primary);color:#fff} .btn-primary:hover{background:var(--primary-light)}
+    .btn-green{background:#25D366;color:#fff} .btn-green:hover{background:#128C7E}
+    .btn-dl{background:var(--green-dark);color:#fff} .btn-dl:hover{filter:brightness(1.1)}
+    .btn-sm{padding:6px 10px;font-size:11px}
+
+    /* ── Tabla principal ── */
+    .table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:30px}
+    .table-wrap{overflow-x:auto;max-height:520px;overflow-y:auto}
+    .table-wrap::-webkit-scrollbar{width:6px;height:6px} .table-wrap::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
+    table{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
+    thead{position:sticky;top:0;z-index:2}
+    th{background:var(--primary);color:#fff;padding:11px 12px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.8px;font-weight:600}
+    td{padding:10px 12px;border-bottom:1px solid #f3f4f6;text-align:center}
+    tr:hover td{background:#f0f4ff}
+    .row-bad td{background:#fff5f5} .row-bad:hover td{background:#fee2e2}
+    .row-prox td{background:#fffbeb}
+
+    /* ── Badges ── */
+    .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700}
+    .badge-ok{background:#d1fae5;color:#065f46}
+    .badge-prox{background:#fef3c7;color:#92400e}
+    .badge-bad{background:#fee2e2;color:#991b1b}
+
+    /* ── RV bar ── */
+    .rv-bar-wrap{display:flex;align-items:center;gap:8px}
+    .rv-bar{flex:1;height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden}
+    .rv-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+    .rv-val{font-weight:600;font-size:12px;white-space:nowrap}
+
+    /* ── Modal ── */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+    .modal-overlay.open{display:flex}
+    .modal{background:var(--card);border-radius:16px;width:100%;max-width:900px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+    .modal-header{background:var(--primary);color:#fff;padding:20px 24px;border-radius:16px 16px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:2}
+    .modal-header h2{font-size:16px;font-weight:700}
+    .close-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center}
+    .close-btn:hover{background:rgba(255,255,255,.3)}
+    .modal-body{padding:24px}
+    .modal-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px}
+    .mk{background:var(--bg);border-radius:10px;padding:14px;text-align:center}
+    .mk-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+    .mk-val{font-size:1.4rem;font-weight:700;color:var(--primary)}
+    .mk-val.green{color:var(--green-dark)} .mk-val.red{color:var(--red)}
+
+    /* ── Progress circular ── */
+    .progress-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:20px}
+    .progress-container{position:relative;display:flex;align-items:center;justify-content:center;width:120px;height:120px}
+    .progress-svg{transform:rotate(-90deg);position:absolute;top:0;left:0}
+    .progress-text{font-size:22px;font-weight:700;color:var(--primary);position:relative;z-index:1}
+
+    /* ── Tabla viajes modal ── */
+    .viajes-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+    .viajes-table th{background:var(--primary);color:#fff;padding:9px 10px;text-align:center;font-size:11px;letter-spacing:.5px;position:sticky;top:0}
+    .viajes-table td{padding:9px 10px;border-bottom:1px solid #f3f4f6;text-align:center}
+    .viajes-table tr:hover td{background:#f0f4ff}
+    .viajes-table tfoot td{background:#f3f4f6;font-weight:700}
+
+    /* ── Acciones modal ── */
+    .modal-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+    /* ── Mini chart ── */
+    .chart-area{margin:16px 0 20px}
+    .chart-title{font-size:12px;font-weight:600;color:var(--primary);margin-bottom:6px}
+
+    /* ── Loading / Toast ── */
+    .loading{text-align:center;padding:60px;color:var(--muted);font-size:14px}
+    .toast{position:fixed;bottom:24px;right:24px;z-index:999;background:var(--primary);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
+    .toast.show{transform:translateY(0);opacity:1}
+
+    /* ── Dashboard charts ── */
+    .dash-grid{display:grid;grid-template-columns:1fr;gap:20px;margin-bottom:22px}
+    .dash-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+    .dash-card h3{font-size:13px;font-weight:600;color:var(--primary);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .dash-card h3::before{content:'';width:3px;height:14px;background:var(--primary);border-radius:2px;display:block}
+    @media(max-width:960px){.dash-grid{grid-template-columns:1fr}}
+    @media(max-width:700px){
+      .sidebar:not(.hidden) ~ main{margin-left:0}
+      .kpi-val{font-size:1.5rem}
+    }
   </style>
 </head>
 <body>
-  <header><span class="brand">🚛 Dashboard de Desempeño de Choferes</span></header>
-  <button class="toggle-btn" id="toggleBtn">☰</button>
 
-  <div class="layout">
-    <aside class="sidebar hidden" id="sidebar">
-      <div class="side-title">Seguimiento RV</div>
-      <nav class="nav">
-        <a href="#">📊 Status de RV</a>
-        <a href="https://fadelt1.github.io/seguimientoporchofer/">🚚 Tramos por Chofer</a>
-        <a href="https://fadelt1.github.io/historicorv/">📈 Histórico RV</a>
-      </nav>
-    </aside>
+<header><span class="brand">🚛 Dashboard de Desempeño de Choferes</span></header>
 
-    <main>
-      <!-- Tarjetas -->
-      <section class="cards">
-        <div class="card c1"><div class="k">Total de RV</div><div class="v" id="k_totalRV">₲ 0</div></div>
-        <div class="card c2"><div class="k">Total fuera de la meta</div><div class="v" id="k_fuera">0</div></div>
-        <div class="card c3"><div class="k">Tipo 2 fuera de meta</div><div class="v" id="k_t2">0</div></div>
-        <div class="card c4"><div class="k">Tipo 3 fuera de meta</div><div class="v" id="k_t3">0</div></div>
-      </section>
+<button class="toggle-btn" id="toggleBtn">☰</button>
 
-      <!-- Gráfico -->
-      <div id="grafico"></div>
+<!-- Sidebar -->
+<aside class="sidebar hidden" id="sidebar">
+  <div class="side-title">Seguimiento RV</div>
+  <nav class="nav">
+    <a href="#">📊 Status de RV</a>
+    <a href="https://fadelt1.github.io/seguimientoporchofer/">🚚 Tramos por Chofer</a>
+    <a href="https://fadelt1.github.io/historicorv/">📈 Histórico RV</a>
+    <a href="https://fadelt1.github.io/indextotenadm/#">🏠 Volver al inicio</a>
+  </nav>
+</aside>
 
-      <!-- Toolbar (ahora abajo del gráfico) -->
-      <section class="toolbar">
-        <input id="search" type="text" placeholder="Buscar chofer..." />
-        <select id="f_tipo">
-          <option value="">Filtrar por Tipo</option>
-          <option value="2">Tipo 2</option>
-          <option value="3">Tipo 3</option>
-        </select>
-        <select id="f_estado">
-          <option value="">Filtrar por Estado</option>
-          <option value="ok">Cumple Meta</option>
-          <option value="prox">Próximo a llegar</option>
-          <option value="bad">Fuera de Meta</option>
-        </select>
-        <select id="f_interior">
-          <option value="">Filtrar Interior</option>
-          <option value="con">Con viajes</option>
-          <option value="sin">Sin viajes</option>
-        </select>
-        <button class="btn btn-primary" id="btn_csv">📤 Exportar CSV</button>
-      </section>
+<main id="mainContent">
 
-      <!-- Tabla -->
-      <div class="table-wrap">
-        <table id="tabla">
-          <thead>
-            <tr>
-              <th>Chofer</th>
-              <th>Tipo</th>
-              <th>RV</th>
-              <th>Viáticos</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-    </main>
+  <!-- Error banner -->
+  <div class="error-banner" id="errorBanner">
+    <span>⚠️</span>
+    <span id="errorMsg">Error al conectar con Firebase.</span>
   </div>
 
-  <script>
-    const FIREBASE_URL = "https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json";
-    const META_RV = 585000;
-    let viajes = [];
-    let rvPorChofer = {};
-    const fmtGs = n => '₲ ' + (Number(n)||0).toLocaleString('es-PY');
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi"><div class="kpi-label">Total choferes</div><div class="kpi-val" id="kTotal">—</div><div class="kpi-sub">en el corte actual</div></div>
+    <div class="kpi red"><div class="kpi-label">Fuera de meta</div><div class="kpi-val" id="kFuera">—</div><div class="kpi-sub">por debajo de ₲ 585.000</div></div>
+    <div class="kpi yellow"><div class="kpi-label">Próximos a llegar</div><div class="kpi-val" id="kProx">—</div><div class="kpi-sub">entre ₲ 500.000 y ₲ 585.000</div></div>
+    <div class="kpi green"><div class="kpi-label">Cumplen meta</div><div class="kpi-val" id="kOk">—</div><div class="kpi-sub">₲ 585.000 o más</div><div class="kpi-bar"><div class="kpi-bar-fill" id="kBar" style="width:0%"></div></div></div>
+    <div class="kpi"><div class="kpi-label">RV total acumulado</div><div class="kpi-val" id="kTotalRV" style="font-size:1.2rem">—</div><div class="kpi-sub">suma de todos los choferes</div></div>
+  </div>
 
-    const sidebar = document.getElementById("sidebar");
-    document.getElementById("toggleBtn").addEventListener("click",()=> sidebar.classList.toggle("hidden"));
-    document.querySelectorAll(".nav a").forEach(link=>link.addEventListener("click",()=> sidebar.classList.add("hidden")));
+  <!-- Dashboard charts -->
+  <div class="dash-grid" id="dashGrid" style="display:none">
+    <div class="dash-card">
+      <h3>RV Total por Día</h3>
+      <div id="chartRVChofer" style="overflow-x:auto;overflow-y:hidden"></div>
+    </div>
+  </div>
 
-    async function cargarDatos(){
-      try{
-        const res = await fetch(FIREBASE_URL);
-        if(!res.ok) throw new Error('Error HTTP: '+res.status);
-        const data = await res.json();
-        viajes = data ? Object.values(data) : [];
-        agruparPorChofer();
-        renderTabla();
-        renderGrafico();
-        kpis();
-      }catch(err){console.error("Error Firebase:",err);}
-    }
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="🔍 Buscar chofer..."/>
+    <select id="fTipo">
+      <option value="">Todos los tipos</option>
+      <option value="2">Tipo 2</option>
+      <option value="3">Tipo 3</option>
+    </select>
+    <select id="fEstado">
+      <option value="">Todos los estados</option>
+      <option value="ok">✅ Cumple meta</option>
+      <option value="prox">⚠️ Próximo a llegar</option>
+      <option value="bad">❌ Fuera de meta</option>
+    </select>
+    <select id="fInterior">
+      <option value="">Todos</option>
+      <option value="con">Con viáticos interior</option>
+      <option value="sin">Sin viáticos interior</option>
+    </select>
+    <button class="btn btn-primary" id="btnCSV">📤 Exportar CSV</button>
+  </div>
 
-    function agruparPorChofer(){
-      rvPorChofer = viajes.reduce((acc,v)=>{
-        const chofer=(v["MOTORISTA 1"]||"").trim();
-        if(!chofer)return acc;
-        const tipo=String(v["TIPO"]||"").trim();
-        const rv=parseFloat(v["RV GENERAL"])||0;
-        const viatico=parseFloat(v["VIATICO"])||0;
-        if(!acc[chofer]) acc[chofer]={rvTotal:0,viaticoTotal:0,tipo};
-        acc[chofer].rvTotal+=rv;
-        acc[chofer].viaticoTotal+=viatico;
-        if(tipo) acc[chofer].tipo=tipo;
-        return acc;
-      },{});
-    }
+  <!-- Tabla -->
+  <div class="table-card">
+    <div class="table-wrap">
+      <div class="loading" id="loadingMain">Conectando con Firebase...</div>
+      <table id="tablaMain" style="display:none">
+        <thead>
+          <tr>
+            <th>#</th><th>Chofer</th><th>Tipo</th>
+            <th>RV Acumulado</th><th>Viáticos</th><th>Viajes</th>
+            <th>Estado</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
 
-    function kpis(){
-      let totalRV=0;const t2=new Set(),t3=new Set(),fuera=new Set();
-      for(const [ch,d] of Object.entries(rvPorChofer)){
-        totalRV+=d.rvTotal;
-        if(d.rvTotal<META_RV)fuera.add(ch);
-        if(String(d.tipo)==='2'&&d.rvTotal<META_RV)t2.add(ch);
-        if(String(d.tipo)==='3'&&d.rvTotal<META_RV)t3.add(ch);
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Detalle del Chofer</h2>
+      <button class="close-btn" id="modalClose">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ───────────────────────────────────────────────────────────
+var FIREBASE_URL = 'https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json';
+var META_RV      = 585000;
+var viajesGlobal = [];
+var choferes     = {};
+
+// ── Helpers ──────────────────────────────────────────────────────────
+function fmt(n){ return '\u20b2 ' + (Number(n)||0).toLocaleString('es-PY'); }
+
+function parseFecha(f){
+  if(!f) return 0;
+  var p = f.split('/');
+  if(p.length===3) return new Date(parseInt(p[2]), parseInt(p[1])-1, parseInt(p[0])).getTime();
+  return new Date(f).getTime()||0;
+}
+
+function pct(v,max){ return Math.min(100, Math.round((v / (max||1)) * 100)); }
+
+function showToast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+function showError(msg){
+  var b = document.getElementById('errorBanner');
+  document.getElementById('errorMsg').textContent = msg;
+  b.classList.add('show');
+}
+
+function estadoClase(rv){
+  if(rv >= META_RV)  return 'ok';
+  if(rv >= 500000)   return 'prox';
+  return 'bad';
+}
+
+function estadoLabel(cls){
+  if(cls==='ok')   return '<span class="badge badge-ok">✅ Cumple meta</span>';
+  if(cls==='prox') return '<span class="badge badge-prox">⚠️ Próximo</span>';
+  return '<span class="badge badge-bad">❌ Fuera de meta</span>';
+}
+
+// Busca campo ignorando mayúsculas y espacios al final
+function campo(v, candidatos){
+  var keys = Object.keys(v);
+  for(var i=0;i<candidatos.length;i++){
+    var cand = candidatos[i].toUpperCase();
+    for(var j=0;j<keys.length;j++){
+      if(keys[j].toUpperCase().trim()===cand){
+        var val = v[keys[j]];
+        return (val!=null && val!==0) ? String(val).trim() : '';
       }
-      document.getElementById('k_totalRV').textContent=fmtGs(totalRV);
-      document.getElementById('k_fuera').textContent=fuera.size;
-      document.getElementById('k_t2').textContent=t2.size;
-      document.getElementById('k_t3').textContent=t3.size;
     }
+  }
+  return '';
+}
 
-    function estadoClase(rv){
-      if(rv < 500000) return 'bad';
-      if(rv < META_RV) return 'prox';
-      return 'ok';
+// ── Firebase ─────────────────────────────────────────────────────────
+async function cargarDatos(){
+  try {
+    var res = await fetch(FIREBASE_URL);
+    if(!res.ok) throw new Error('HTTP ' + res.status + ' – ' + res.statusText);
+    var json = await res.json();
+    if(!json) throw new Error('La base de datos está vacía');
+
+    viajesGlobal = Array.isArray(json)
+      ? json.filter(function(r){ return r && typeof r==='object'; })
+      : Object.values(json).filter(function(r){ return r && typeof r==='object'; });
+
+    if(viajesGlobal.length===0) throw new Error('No se encontraron registros en Firebase');
+
+    procesarDatos();
+    renderKPIs();
+    renderTabla();
+
+  } catch(err){
+    console.error('Firebase error:', err);
+    var msg = err.message || 'Error desconocido';
+    if(msg.includes('Failed to fetch') || msg.includes('NetworkError')){
+      msg = 'No se pudo conectar con Firebase. Verificá tu conexión a internet o las reglas de la base de datos.';
     }
+    showError(msg);
+    document.getElementById('loadingMain').textContent = '⚠️ ' + msg;
+    document.getElementById('loadingMain').style.color = '#991b1b';
+  }
+}
 
-    function getListaFiltrada(){
-      const filtroNombre=document.getElementById("search").value.toLowerCase();
-      const filtroTipo=document.getElementById("f_tipo").value;
-      const filtroEstado=document.getElementById("f_estado").value;
-      const filtroInterior=document.getElementById("f_interior").value;
-      return Object.entries(rvPorChofer).sort((a,b)=>b[1].rvTotal-a[1].rvTotal).filter(([chofer,d])=>{
-        const estado=estadoClase(d.rvTotal);
-        if(filtroNombre && !chofer.toLowerCase().includes(filtroNombre)) return false;
-        if(filtroTipo && d.tipo!==filtroTipo) return false;
-        if(filtroEstado && estado!==filtroEstado) return false;
-        if(filtroInterior==="con" && d.viaticoTotal<=0) return false;
-        if(filtroInterior==="sin" && d.viaticoTotal>0) return false;
-        return true;
-      });
-    }
+function procesarDatos(){
+  choferes = {};
+  viajesGlobal.forEach(function(v){
+    var c = campo(v,['MOTORISTA 1','MOTORISTA1','CHOFER']).trim();
+    if(!c) return;
 
-    function renderTabla(){
-      const tbody=document.querySelector('#tabla tbody');tbody.innerHTML='';
-      const lista=getListaFiltrada();
-      for(const [chofer,d] of lista){
-        const estado=estadoClase(d.rvTotal);
-        const tr=document.createElement('tr');if(estado==='bad')tr.classList.add('row-bad');
-        tr.innerHTML=`<td>${chofer}</td><td>${d.tipo||'-'}</td><td>${fmtGs(d.rvTotal)}</td>
-                      <td>${fmtGs(d.viaticoTotal)}</td>
-                      <td><span class="estado ${estado}">
-                      ${estado==='ok'?'✅ Cumple meta':(estado==='prox'?'⚠️ Próximo a llegar':'❌ Fuera de meta')}</span></td>`;
-        tbody.appendChild(tr);
-      }
-    }
+    var rv    = parseFloat(campo(v,['RV GENERAL','RV GERAL','RV']))||0;
+    var via   = parseFloat(campo(v,['VIATICO','VIATICOS']))||0;
+    var tipo  = campo(v,['TIPO','EQUIPO']);
+    var fecha = campo(v,['DATA DA VIAGEM','FECHA','DATE','DATA']);
+    var origen  = campo(v,['ORIGEM IDA','ORIGEM','ORIGIN','ORIGEN']);
+    var destino = campo(v,['DESTINO IDA','DESTINO','DESTINATION','DEST']);
+    var dt    = campo(v,['DT','DT VIAGEM','DOCUMENTO']);
+    var movil = campo(v,['FLOTA ','FLOTA','MOVIL','PLACA']);
 
-    function renderGrafico(){
-      const rvPorDia={},viaticoPorDia={};
-      for(const v of viajes){
-        const f=(v["DATA DA VIAGEM"]||'').toString().trim();if(!f)continue;
-        const rv=parseFloat(v["RV GENERAL"])||0;const via=parseFloat(v["VIATICO"])||0;
-        rvPorDia[f]=(rvPorDia[f]||0)+rv;viaticoPorDia[f]=(viaticoPorDia[f]||0)+via;
-      }
-      const fechas=Object.keys(rvPorDia).sort((a,b)=>new Date(a)-new Date(b));
-      const rvData=fechas.map(f=>rvPorDia[f]);const viaData=fechas.map(f=>viaticoPorDia[f]||0);
-      Highcharts.chart('grafico',{chart:{zoomType:'xy'},title:{text:'RV Total vs Viático Acumulado'},
-        xAxis:{categories:fechas,crosshair:true},
-        yAxis:[{title:{text:'RV Total (₲)'},labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}},
-               {title:{text:'Viático (₲)'},opposite:true,labels:{formatter(){return'₲ '+Highcharts.numberFormat(this.value,0,',','.');}}}],
-        tooltip:{shared:true,formatter:function(){let s='<b>'+this.x+'</b>';this.points.forEach(p=>{s+='<br/>'+p.series.name+': <b>₲ '+Highcharts.numberFormat(p.y,0,',','.')+'</b>';});return s;}},
-        series:[{name:'RV Total',type:'column',data:rvData},{name:'Viático',type:'spline',yAxis:1,data:viaData}]});
-    }
+    if(!choferes[c]) choferes[c]={ rvTotal:0, viaticoTotal:0, tipo:'', viajes:[] };
+    choferes[c].rvTotal      += rv;
+    choferes[c].viaticoTotal += via;
+    if(tipo) choferes[c].tipo = tipo;
+    choferes[c].viajes.push({ fecha:fecha, rv:rv, viatico:via, origen:origen, destino:destino, dt:dt, movil:movil });
+  });
 
-    function exportarCSV(){
-      const lista=getListaFiltrada();
-      let csv="Chofer,Tipo,RV,Viaticos,Estado\n";
-      lista.forEach(([chofer,d])=>{
-        const estado=estadoClase(d.rvTotal);
-        const estadoTxt=estado==='ok'?'Cumple meta':(estado==='prox'?'Proximo a llegar':'Fuera de meta');
-        csv+=`"${chofer}",${d.tipo||"-"},${d.rvTotal},${d.viaticoTotal},"${estadoTxt}"\n`;
-      });
-      const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
-      const link=document.createElement("a");
-      link.href=URL.createObjectURL(blob);
-      link.setAttribute("download","dashboard_choferes.csv");
-      document.body.appendChild(link);link.click();document.body.removeChild(link);
-    }
+  // Ordenar viajes por fecha DD/MM/YYYY
+  Object.keys(choferes).forEach(function(c){
+    choferes[c].viajes.sort(function(a,b){ return parseFecha(a.fecha)-parseFecha(b.fecha); });
+  });
+}
 
-    document.getElementById("search").addEventListener("input",renderTabla);
-    document.getElementById("f_tipo").addEventListener("change",renderTabla);
-    document.getElementById("f_estado").addEventListener("change",renderTabla);
-    document.getElementById("f_interior").addEventListener("change",renderTabla);
-    document.getElementById("btn_csv").addEventListener("click",exportarCSV);
+// ── KPIs ─────────────────────────────────────────────────────────────
+function renderKPIs(){
+  var total=0,ok=0,prox=0,bad=0,totalRV=0;
+  Object.entries(choferes).forEach(function(e){
+    total++;
+    totalRV += e[1].rvTotal;
+    var cls = estadoClase(e[1].rvTotal);
+    if(cls==='ok') ok++; else if(cls==='prox') prox++; else bad++;
+  });
+  document.getElementById('kTotal').textContent   = total;
+  document.getElementById('kFuera').textContent   = bad;
+  document.getElementById('kProx').textContent    = prox;
+  document.getElementById('kOk').textContent      = ok;
+  document.getElementById('kTotalRV').textContent = fmt(totalRV);
+  setTimeout(function(){ document.getElementById('kBar').style.width = pct(ok,total)+'%'; }, 200);
+  renderDashboard(ok, prox, bad, total);
+}
 
-    (async()=>{await cargarDatos();})();
-  </script>
+function renderDashboard(ok, prox, bad, total){
+  var grid = document.getElementById('dashGrid');
+  grid.style.display = '';
+
+  // Adherencia eliminada del dashboard principal
+
+  // ── Gráfico RV total por día ──
+  // Agrupar todos los viajes por fecha
+  var rvPorDia = {};
+  viajesGlobal.forEach(function(v){
+    var fecha = String(v['DATA DA VIAGEM']||'').trim();
+    var rv    = parseFloat(v['RV GENERAL'])||0;
+    if(!fecha) return;
+    rvPorDia[fecha] = (rvPorDia[fecha]||0) + rv;
+  });
+
+  // Ordenar fechas cronológicamente
+  var fechas = Object.keys(rvPorDia).sort(function(a,b){ return parseFecha(a)-parseFecha(b); });
+
+  var container = document.getElementById('chartRVChofer');
+  var n      = fechas.length;
+  if(n===0){ container.innerHTML='<p style="color:#9ca3af;text-align:center;padding:40px">Sin datos</p>'; return; }
+
+  var barW   = 34;
+  var gap    = 10;
+  var padL   = 58, padR = 20, padT = 28, padB = 52;
+  var W      = padL + n*(barW+gap) + padR;
+  var H      = 290;
+  var chartH = H - padT - padB;
+  var vals   = fechas.map(function(f){ return rvPorDia[f]; });
+  var maxRV  = Math.max.apply(null, vals)||1;
+
+  var svgNS = 'http://www.w3.org/2000/svg';
+  var svgEl = document.createElementNS(svgNS,'svg');
+  svgEl.setAttribute('viewBox','0 0 '+W+' '+H);
+  svgEl.setAttribute('height', H);
+  svgEl.setAttribute('width', Math.max(W,300));
+  svgEl.style.display = 'block';
+  svgEl.style.fontFamily = 'Montserrat,sans-serif';
+
+  // Grid lines + labels eje Y
+  for(var g=0;g<=5;g++){
+    var gy = padT + chartH - (g/5)*chartH;
+    var gv = Math.round((g/5)*maxRV);
+    var gl = document.createElementNS(svgNS,'line');
+    gl.setAttribute('x1',padL); gl.setAttribute('y1',gy);
+    gl.setAttribute('x2',W-padR); gl.setAttribute('y2',gy);
+    gl.setAttribute('stroke','#f0f0f0'); gl.setAttribute('stroke-width','1');
+    svgEl.appendChild(gl);
+    var gt = document.createElementNS(svgNS,'text');
+    gt.setAttribute('x',padL-6); gt.setAttribute('y',gy+4);
+    gt.setAttribute('text-anchor','end'); gt.setAttribute('font-size','9'); gt.setAttribute('fill','#9ca3af');
+    gt.textContent = (gv>=1000000 ? (gv/1000000).toFixed(1)+'M' : gv>=1000 ? Math.round(gv/1000)+'k' : gv);
+    svgEl.appendChild(gt);
+  }
+
+  // Barras por día
+  fechas.forEach(function(fecha, i){
+    var rv  = rvPorDia[fecha];
+    var bh  = Math.max(2,(rv/maxRV)*chartH);
+    var bx  = padL + i*(barW+gap);
+    var by  = padT + chartH - bh;
+
+    // Barra
+    var rect = document.createElementNS(svgNS,'rect');
+    rect.setAttribute('x',bx); rect.setAttribute('y',by);
+    rect.setAttribute('width',barW); rect.setAttribute('height',bh);
+    rect.setAttribute('rx','4'); rect.setAttribute('fill','#002060');
+    rect.setAttribute('opacity','0.85');
+    svgEl.appendChild(rect);
+
+    // Valor encima
+    var vt = document.createElementNS(svgNS,'text');
+    vt.setAttribute('x',bx+barW/2); vt.setAttribute('y',by-5);
+    vt.setAttribute('text-anchor','middle'); vt.setAttribute('font-size','8');
+    vt.setAttribute('font-weight','600'); vt.setAttribute('fill','#374151');
+    vt.textContent = rv>=1000000 ? (rv/1000000).toFixed(1)+'M' : Math.round(rv/1000)+'k';
+    svgEl.appendChild(vt);
+
+    // Fecha rotada abajo
+    var lx = bx+barW/2, ly = padT+chartH+12;
+    var lt = document.createElementNS(svgNS,'text');
+    lt.setAttribute('transform','rotate(-45,'+lx+','+ly+')');
+    lt.setAttribute('x',lx); lt.setAttribute('y',ly);
+    lt.setAttribute('text-anchor','end'); lt.setAttribute('font-size','9'); lt.setAttribute('fill','#6b7280');
+    // Mostrar solo DD/MM
+    var partes = fecha.split('/');
+    lt.textContent = partes.length>=2 ? partes[0]+'/'+partes[1] : fecha;
+    svgEl.appendChild(lt);
+  });
+
+  container.innerHTML = '';
+  container.appendChild(svgEl);
+}
+
+
+// ── Tabla principal ───────────────────────────────────────────────────
+function getListaFiltrada(){
+  var search  = document.getElementById('search').value.toLowerCase();
+  var fTipo   = document.getElementById('fTipo').value;
+  var fEstado = document.getElementById('fEstado').value;
+  var fInt    = document.getElementById('fInterior').value;
+  return Object.entries(choferes)
+    .sort(function(a,b){ return b[1].rvTotal - a[1].rvTotal; })
+    .filter(function(e){
+      var c=e[0],d=e[1];
+      if(search  && !c.toLowerCase().includes(search)) return false;
+      if(fTipo   && String(d.tipo)!==fTipo) return false;
+      if(fEstado && estadoClase(d.rvTotal)!==fEstado) return false;
+      if(fInt==='con' && d.viaticoTotal<=0) return false;
+      if(fInt==='sin' && d.viaticoTotal>0)  return false;
+      return true;
+    });
+}
+
+function renderTabla(){
+  var lista  = getListaFiltrada();
+  var tbody  = document.getElementById('tbody');
+  var tabla  = document.getElementById('tablaMain');
+  tbody.innerHTML = '';
+  document.getElementById('loadingMain').style.display = 'none';
+  tabla.style.display = '';
+
+  if(lista.length===0){
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="8" style="padding:30px;color:var(--muted)">No se encontraron choferes</td>';
+    tbody.appendChild(tr);
+    return;
+  }
+
+  lista.forEach(function(e, i){
+    var c=e[0], d=e[1];
+    var cls      = estadoClase(d.rvTotal);
+    var barColor = cls==='ok'?'#34d399':cls==='prox'?'#f59e0b':'#e11d48';
+    var barW     = pct(d.rvTotal, META_RV);
+    var tr       = document.createElement('tr');
+    if(cls==='bad')  tr.className='row-bad';
+    else if(cls==='prox') tr.className='row-prox';
+
+    var nombreEsc = c.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    tr.innerHTML =
+      '<td style="color:var(--muted);font-weight:600">'+(i+1)+'</td>'+
+      '<td style="text-align:left;font-weight:600">'+c+'</td>'+
+      '<td>'+(d.tipo||'—')+'</td>'+
+      '<td style="min-width:190px">'+
+        '<div class="rv-bar-wrap">'+
+          '<div class="rv-bar"><div class="rv-bar-fill" style="width:'+barW+'%;background:'+barColor+'"></div></div>'+
+          '<span class="rv-val">'+fmt(d.rvTotal)+'</span>'+
+        '</div>'+
+      '</td>'+
+      '<td>'+fmt(d.viaticoTotal)+'</td>'+
+      '<td>'+d.viajes.length+'</td>'+
+      '<td>'+estadoLabel(cls)+'</td>'+
+      '<td><button class="btn btn-primary btn-sm" onclick="abrirModal(\''+nombreEsc+'\')">🔍 Ver</button></td>';
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────
+function abrirModal(nombre){
+  var d = choferes[nombre];
+  if(!d) return;
+
+  var cls      = estadoClase(d.rvTotal);
+  var barColor = cls==='ok'?'#34d399':cls==='prox'?'#f59e0b':'#e11d48';
+  var porcentaje = pct(d.rvTotal, META_RV);
+  var falta    = Math.max(0, META_RV - d.rvTotal);
+
+  // Progreso circular SVG
+  var r = 50, circ = 2*Math.PI*r;
+  var dashOffset = circ - (porcentaje/100)*circ;
+
+  // Mini chart RV por día
+  var rvPorDia = {};
+  d.viajes.forEach(function(v){ if(v.fecha) rvPorDia[v.fecha]=(rvPorDia[v.fecha]||0)+v.rv; });
+  var fechas = Object.keys(rvPorDia).sort(function(a,b){ return parseFecha(a)-parseFecha(b); });
+  var chartSVG = '';
+  if(fechas.length>0){
+    var W=700,H=110,pL=10,pR=10,pT=18,pB=28,cW=W-pL-pR,cH=H-pT-pB;
+    var maxRV = Math.max.apply(null, fechas.map(function(f){ return rvPorDia[f]; }))||1;
+    var bw    = Math.max(8, cW/fechas.length*0.6);
+    var gap   = cW/fechas.length;
+    chartSVG  = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;font-family:Montserrat,sans-serif">';
+    fechas.forEach(function(f,i){
+      var bh  = (rvPorDia[f]/maxRV)*cH;
+      var bx  = pL+i*gap+(gap-bw)/2;
+      var by  = pT+cH-bh;
+      chartSVG += '<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" rx="3" fill="'+barColor+'"/>';
+      chartSVG += '<text x="'+(bx+bw/2)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9" fill="#6b7280">'+f.split('/').slice(0,2).join('/')+'</text>';
+    });
+    chartSVG += '</svg>';
+  }
+
+  // Filas tabla viajes
+  var filasViajes = '';
+  d.viajes.forEach(function(v, i){
+    filasViajes +=
+      '<tr>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td>'+( v.fecha||'—')+'</td>'+
+      '<td>'+( v.dt   ||'—')+'</td>'+
+      '<td>'+( v.movil||'—')+'</td>'+
+      '<td>'+( v.origen ||'—')+'</td>'+
+      '<td>'+( v.destino||'—')+'</td>'+
+      '<td style="font-weight:600">'+fmt(v.rv)+'</td>'+
+      '<td>'+fmt(v.viatico)+'</td>'+
+      '</tr>';
+  });
+
+  // Mensaje WhatsApp
+  var nombreFmt = nombre.split(' ').map(function(p){
+    return p.charAt(0).toUpperCase()+p.slice(1).toLowerCase();
+  }).join(' ');
+  var msgWA = encodeURIComponent(
+    'Buenas '+nombreFmt+', te comparto tu cierre de RV del corte actual, favor verificar el detalle y solicitar ajuste en caso de faltar algún tramo!\nSaludos!\n\n'+
+    '━━━━━━━━━━━━━━━━\n'+
+    '🗺️ *Viajes realizados:* '+d.viajes.length+'\n'+
+    '💰 *RV acumulado:* '+fmt(d.rvTotal)+'\n'+
+    '🏨 *Viáticos:* '+fmt(d.viaticoTotal)
+  );
+
+  var nombreEsc = nombre.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+
+  document.getElementById('modalTitle').textContent = '📋 ' + nombre;
+  document.getElementById('modalBody').innerHTML =
+
+    // KPIs
+    '<div class="modal-kpis">'+
+      '<div class="mk"><div class="mk-label">RV Acumulado</div><div class="mk-val '+(cls==='ok'?'green':cls==='bad'?'red':'')+'">'+fmt(d.rvTotal)+'</div></div>'+
+      '<div class="mk"><div class="mk-label">Meta</div><div class="mk-val">'+fmt(META_RV)+'</div></div>'+
+      '<div class="mk"><div class="mk-label">'+(falta>0?'Falta':'Excedente')+'</div><div class="mk-val '+(falta>0?'red':'green')+'">'+fmt(falta>0?falta:d.rvTotal-META_RV)+'</div></div>'+
+      '<div class="mk"><div class="mk-label">Viáticos</div><div class="mk-val">'+fmt(d.viaticoTotal)+'</div></div>'+
+      '<div class="mk"><div class="mk-label">Viajes</div><div class="mk-val">'+d.viajes.length+'</div></div>'+
+      '<div class="mk"><div class="mk-label">Tipo equipo</div><div class="mk-val">'+(d.tipo||'—')+'</div></div>'+
+    '</div>'+
+
+    // Progreso circular
+    '<div class="progress-wrap">'+
+      '<div class="progress-container">'+
+        '<svg class="progress-svg" width="120" height="120" viewBox="0 0 120 120">'+
+          '<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="#e5e7eb" stroke-width="10"/>'+
+          '<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="'+barColor+'" stroke-width="10"'+
+            ' stroke-dasharray="'+circ+'" stroke-dashoffset="'+dashOffset+'" stroke-linecap="round"'+
+            ' style="transition:stroke-dashoffset 1s ease"/>'+
+        '</svg>'+
+        '<span class="progress-text">'+porcentaje+'%</span>'+
+      '</div>'+
+      '<span style="font-size:13px;color:var(--muted)">del objetivo mensual</span>'+
+    '</div>'+
+
+    // Mini chart
+    (chartSVG ? '<div class="chart-area"><div class="chart-title">RV por fecha de viaje</div>'+chartSVG+'</div>' : '')+
+
+    // Tabla viajes
+    '<div class="chart-title" style="margin-bottom:8px">Detalle de viajes</div>'+
+    '<div style="overflow-x:auto">'+
+      '<table class="viajes-table">'+
+        '<thead><tr><th>#</th><th>Fecha</th><th>DT</th><th>Móvil</th><th>Origen</th><th>Destino</th><th>RV</th><th>Viático</th></tr></thead>'+
+        '<tbody>'+filasViajes+'</tbody>'+
+      '</table>'+
+      '<div style="display:flex;justify-content:flex-end;gap:32px;margin-top:10px;padding:10px 14px;background:#f3f4f6;border-radius:6px;font-size:13px;font-weight:700;color:#002060">'+
+        '<span>Total RV: '+fmt(d.rvTotal)+'</span>'+
+        '<span>Total Viáticos: '+fmt(d.viaticoTotal)+'</span>'+
+      '</div>'+
+    '</div>'+
+
+    // Botones
+    '<div class="modal-actions">'+
+      '<button class="btn btn-green" onclick="compartirWA(\''+nombreEsc+'\',\''+msgWA+'\')">📲 Compartir por WhatsApp</button>'+
+      '<button class="btn btn-primary" onclick="imprimirPDF(\''+nombreEsc+'\')">🖨️ Imprimir PDF</button>'+
+      '<button class="btn btn-dl" onclick="descargarPDF(\''+nombreEsc+'\')">📥 Descargar PDF</button>'+
+      '<button class="btn" style="background:#6b7280;color:#fff" onclick="cerrarModal()">Cerrar</button>'+
+    '</div>';
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function cerrarModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+// ── WhatsApp ─────────────────────────────────────────────────────────
+function compartirWA(nombre, msgWA){
+  descargarPDF(nombre);
+  setTimeout(function(){ window.open('https://wa.me/?text='+msgWA,'_blank'); }, 800);
+}
+
+// ── Generar HTML del reporte ─────────────────────────────────────────
+function generarHTMLReporte(nombre){
+  var d = choferes[nombre];
+  if(!d) return '';
+  var cls      = estadoClase(d.rvTotal);
+  var color    = cls==='ok'?'#059669':cls==='prox'?'#f59e0b':'#e11d48';
+  var falta    = Math.max(0, META_RV - d.rvTotal);
+  var progPct  = Math.min(100, Math.round((d.rvTotal/META_RV)*100));
+
+  var filas = d.viajes.map(function(v,i){
+    return '<tr>'+
+      '<td>'+(i+1)+'</td>'+
+      '<td>'+(v.fecha ||'—')+'</td>'+
+      '<td>'+(v.dt    ||'—')+'</td>'+
+      '<td>'+(v.movil ||'—')+'</td>'+
+      '<td>'+(v.origen||'—')+'</td>'+
+      '<td>'+(v.destino||'—')+'</td>'+
+      '<td style="font-weight:700">'+fmt(v.rv)+'</td>'+
+      '<td>'+fmt(v.viatico)+'</td>'+
+    '</tr>';
+  }).join('');
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<title>'+nombre+'</title>'+
+    '<style>'+
+    'body{font-family:Arial,sans-serif;margin:0;padding:0;color:#1f2937;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
+    '.hdr{background:#002060;color:#fff;padding:22px 28px;display:flex;justify-content:space-between;align-items:center}'+
+    '.hdr h1{font-size:16px;margin:0}'+
+    '.hdr .sub{font-size:11px;opacity:.8;margin-top:3px}'+
+    '.body{padding:22px 28px}'+
+    '.kpis{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}'+
+    '.kpi{flex:1;min-width:110px;border:1px solid #e5e7eb;border-radius:8px;padding:10px;text-align:center}'+
+    '.kpi .l{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:3px}'+
+    '.kpi .v{font-size:17px;font-weight:700;color:#002060}'+
+    '.prog-l{font-size:11px;color:#6b7280;margin-bottom:4px}'+
+    '.prog-w{background:#f3f4f6;border-radius:8px;height:12px;margin-bottom:18px;overflow:hidden}'+
+    '.prog-f{height:100%;background:'+color+';width:'+progPct+'%;border-radius:8px}'+
+    'table{width:100%;border-collapse:collapse;font-size:11px}'+
+    'th{background:#002060;color:#fff;padding:8px;text-align:center;font-size:10px}'+
+    'td{padding:7px 8px;border-bottom:1px solid #f3f4f6;text-align:center}'+
+    'tr:nth-child(even) td{background:#f9fafb}'+
+    '.foot{text-align:center;font-size:9px;color:#9ca3af;margin-top:20px;padding-top:10px;border-top:1px solid #e5e7eb}'+
+    '@page{margin:15mm}'+
+    '@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'+
+    '</style></head><body>'+
+    '<div class="hdr">'+
+      '<span style="font-size:24px">🚛</span>'+
+      '<div><h1>Reporte RV – Corte Actual</h1><div class="sub">'+nombre+' | Tipo: '+(d.tipo||'—')+'</div></div>'+
+      '<div style="font-size:11px;opacity:.9">'+new Date().toLocaleDateString('es-PY')+'</div>'+
+    '</div>'+
+    '<div class="body">'+
+      '<div class="kpis">'+
+        '<div class="kpi"><div class="l">RV Acumulado</div><div class="v" style="color:'+color+'">'+fmt(d.rvTotal)+'</div></div>'+
+        '<div class="kpi"><div class="l">Meta mensual</div><div class="v">'+fmt(META_RV)+'</div></div>'+
+        '<div class="kpi"><div class="l">'+(falta>0?'Falta':'Excedente')+'</div><div class="v" style="color:'+color+'">'+fmt(falta>0?falta:d.rvTotal-META_RV)+'</div></div>'+
+        '<div class="kpi"><div class="l">Viáticos</div><div class="v">'+fmt(d.viaticoTotal)+'</div></div>'+
+        '<div class="kpi"><div class="l">Viajes</div><div class="v">'+d.viajes.length+'</div></div>'+
+      '</div>'+
+      '<div class="prog-l">Progreso hacia la meta: '+progPct+'%</div>'+
+      '<div class="prog-w"><div class="prog-f"></div></div>'+
+      '<table>'+
+        '<thead><tr><th>#</th><th>Fecha</th><th>DT</th><th>Móvil</th><th>Origen</th><th>Destino</th><th>RV</th><th>Viático</th></tr></thead>'+
+        '<tbody>'+filas+'</tbody>'+
+      '</table>'+
+      '<div style="display:flex;justify-content:flex-end;gap:40px;margin-top:14px;padding:12px 16px;background:#e5e7eb;border-radius:6px;font-size:13px;font-weight:700">'+
+        '<span>Total RV: <span style="color:#002060;font-size:15px">'+fmt(d.rvTotal)+'</span></span>'+
+        '<span>Total Viáticos: <span style="color:#002060;font-size:15px">'+fmt(d.viaticoTotal)+'</span></span>'+
+      '</div>'+
+      '<div class="foot">Toten Administración – Reporte generado automáticamente</div>'+
+    '</div></body></html>';
+}
+
+// ── Imprimir PDF ─────────────────────────────────────────────────────
+function imprimirPDF(nombre){
+  var html = generarHTMLReporte(nombre);
+  if(!html) return;
+  var win = window.open('','_blank','width=900,height=700');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function(){ win.document.title=nombre; win.print(); }, 600);
+}
+
+// ── Descargar PDF ────────────────────────────────────────────────────
+function descargarPDF(nombre){
+  var html = generarHTMLReporte(nombre);
+  if(!html) return;
+  var win = window.open('','_blank','width=900,height=700');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  // Al guardar desde el dialogo de impresion, el navegador usa el titulo como nombre de archivo
+  setTimeout(function(){
+    win.document.title = nombre;
+    win.print();
+  }, 600);
+}
+
+// ── Exportar CSV ─────────────────────────────────────────────────────
+function exportarCSV(){
+  var lista = getListaFiltrada();
+  var csv   = '\uFEFF"Chofer","Tipo","RV Total","Viáticos","Viajes","Estado"\n';
+  lista.forEach(function(e){
+    var c=e[0],d=e[1];
+    var est={ok:'Cumple meta',prox:'Próximo a llegar',bad:'Fuera de meta'}[estadoClase(d.rvTotal)];
+    csv+='"'+c+'","'+d.tipo+'",'+d.rvTotal+','+d.viaticoTotal+','+d.viajes.length+',"'+est+'"\n';
+  });
+  var a = document.createElement('a');
+  a.href     = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'rv_corte_actual.csv';
+  a.click();
+  showToast('CSV exportado ✓');
+}
+
+// ── Eventos ──────────────────────────────────────────────────────────
+document.getElementById('toggleBtn').addEventListener('click', function(){
+  document.getElementById('sidebar').classList.toggle('hidden');
+});
+document.querySelectorAll('.nav a').forEach(function(a){
+  a.addEventListener('click', function(){
+    document.getElementById('sidebar').classList.add('hidden');
+  });
+});
+document.getElementById('modalClose').addEventListener('click', cerrarModal);
+document.getElementById('modalOverlay').addEventListener('click', function(e){
+  if(e.target===this) cerrarModal();
+});
+document.getElementById('search').addEventListener('input',   renderTabla);
+document.getElementById('fTipo').addEventListener('change',   renderTabla);
+document.getElementById('fEstado').addEventListener('change', renderTabla);
+document.getElementById('fInterior').addEventListener('change',renderTabla);
+document.getElementById('btnCSV').addEventListener('click',   exportarCSV);
+
+// ── Init ─────────────────────────────────────────────────────────────
+cargarDatos();
+</script>
 </body>
 </html>
